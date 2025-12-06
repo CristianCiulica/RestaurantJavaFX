@@ -38,15 +38,23 @@ public class Main {
 
         meniu.adaugaProdus("Fel Principal", new Mancare("Pizza Margherita", 45.0, 450, true));
         meniu.adaugaProdus("Fel Principal", new Mancare("Supa Crema Ciuperci", 22.0, 300, true));
+        meniu.adaugaProdus("Fel Principal", new Mancare("Risotto cu Hribii de munte", 48.0, 320, true));
         meniu.adaugaProdus("Desert", new Mancare("Salata de Fructe", 18.0, 200, true));
+        meniu.adaugaProdus("Desert", new Mancare("Panna Cotta cu fructe de padure", 28.0, 150, true));
 
         meniu.adaugaProdus("Fel Principal", new Mancare("Paste Carbonara", 52.5, 400, false));
+        meniu.adaugaProdus("Fel Principal", new Mancare("Burger Gourmet Black Angus", 62.0, 380, false));
         meniu.adaugaProdus("Desert", new Mancare("Tiramisu Special", 120.0, 250, false));
+        meniu.adaugaProdus("Desert", new Mancare("Cheesecake Vanilie", 32.0, 180, false));
 
         meniu.adaugaProdus("Bauturi Racoritoare", new Bautura("Limonada", 15.0, 400, false));
         meniu.adaugaProdus("Bauturi Racoritoare", new Bautura("Apa Plata", 8.0, 500, false));
+        meniu.adaugaProdus("Bauturi Racoritoare", new Bautura("Fresh Portocale", 19.0, 450, false));
+        meniu.adaugaProdus("Bauturi Racoritoare", new Bautura("Ceai Verde cu miere", 14.0, 350, false));
         meniu.adaugaProdus("Bauturi Alcoolice", new Bautura("Bere", 12.0, 500, true));
         meniu.adaugaProdus("Bauturi Alcoolice", new Bautura("Vin Rosu", 28.0, 150, true));
+        meniu.adaugaProdus("Bauturi Alcoolice", new Bautura("Aperol Spritz", 35.0, 250, true));
+        meniu.adaugaProdus("Bauturi Alcoolice", new Bautura("Gin Tonic", 38.0, 300, true));
 
         Pizza pizzaCustom = new Pizza.PizzaBuilder("Pufos", "Rosii")
                 .withExtraMozzarella()
@@ -54,6 +62,12 @@ public class Main {
                 .withSalam()
                 .build();
         meniu.adaugaProdus("Pizza Custom", pizzaCustom);
+
+        Pizza pizzaVeggie = new Pizza.PizzaBuilder("Subtire", "Busuioc")
+                .withCiuperci()
+                .withExtraMozzarella()
+                .build();
+        meniu.adaugaProdus("Pizza Custom", pizzaVeggie);
 
         meniu.afiseazaMeniu();
 

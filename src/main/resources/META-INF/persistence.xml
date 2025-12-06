@@ -9,6 +9,7 @@
         <class>mip.restaurantfx.Produs</class>
         <class>mip.restaurantfx.Mancare</class>
         <class>mip.restaurantfx.Bautura</class>
+        <class>mip.restaurantfx.Pizza</class>
 
         <properties>
             <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>

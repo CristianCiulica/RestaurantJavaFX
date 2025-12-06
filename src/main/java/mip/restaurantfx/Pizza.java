@@ -1,14 +1,27 @@
 package mip.restaurantfx;
 import java.util.List;
 import java.util.ArrayList;
+import jakarta.persistence.Entity;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.FetchType;
 
+@Entity
+@DiscriminatorValue("Pizza")
 public class Pizza extends Mancare {
     private String blat;
     private String sos;
+
+    @ElementCollection(fetch = FetchType.EAGER)
     private List<String> toppinguri;
 
     private static final double PRET_BAZA = 25.0;
     private static final double PRET_TOPPING = 3.5;
+
+    public Pizza() {
+        super();
+        this.toppinguri = new ArrayList<>();
+    }
 
     private Pizza(PizzaBuilder builder) {
         super(builder.buildNume(),builder.buildPret(),500,!builder.toppinguri.contains("Salam"));
@@ -22,6 +35,15 @@ public class Pizza extends Mancare {
         System.out.println("> " + getNume() + " - " + getPret() + " RON - Gramaj: " + getGramaj() + "g" + (isVegetarian() ? " (Vegetarian)" : ""));
         System.out.println("    [Blat: " + blat + ", Sos: " + sos + ", Toppinguri: " + toppinguri + "]");
     }
+
+    public String getBlat() { return blat; }
+    public void setBlat(String blat) { this.blat = blat; }
+
+    public String getSos() { return sos; }
+    public void setSos(String sos) { this.sos = sos; }
+
+    public List<String> getToppinguri() { return toppinguri; }
+    public void setToppinguri(List<String> toppinguri) { this.toppinguri = toppinguri; }
 
     public static class PizzaBuilder {
         private final String blat;

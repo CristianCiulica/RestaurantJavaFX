@@ -1,5 +1,4 @@
 package mip.restaurantfx;
-
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -30,6 +29,7 @@ public class RestaurantGUI extends Application {
     public void start(Stage primaryStage) {
         try {
             repository = new ProdusRepository();
+            initializeazaProduse();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -49,6 +49,39 @@ public class RestaurantGUI extends Application {
         menuBar.getMenus().add(fileMenu);
 
         listView = new ListView<>();
+        listView.setCellFactory(param -> new ListCell<Produs>() {
+            @Override
+            protected void updateItem(Produs item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                } else {
+                    String details = "";
+                    String type = "";
+
+                    if (item instanceof Pizza) {
+                        Pizza pizza = (Pizza) item;
+                        type = "[Pizza]";
+                        int toppingCount = (pizza.getToppinguri() != null) ? pizza.getToppinguri().size() : 0;
+                        String blatText = (pizza.getBlat() != null) ? pizza.getBlat() : "N/A";
+                        String sosText = (pizza.getSos() != null) ? pizza.getSos() : "N/A";
+                        details = String.format(" - %s, %s, %d toppinguri", blatText, sosText, toppingCount);
+                    } else if (item instanceof Mancare) {
+                        Mancare mancare = (Mancare) item;
+                        type = mancare.isVegetarian() ? "[Mancare Vegetariana]" : "[Mancare]";
+                        details = String.format(" - %dg", mancare.getGramaj());
+                    } else if (item instanceof Bautura) {
+                        Bautura bautura = (Bautura) item;
+                        type = bautura.isAlcoolica() ? "[Bautura Alcoolica]" : "[Bautura]";
+                        details = String.format(" - %dml", bautura.getVolum());
+                    }
+
+                    setText(String.format("%s %s - %.2f RON%s",
+                        type, item.getNume(), item.getPret(), details));
+                }
+            }
+        });
+
         refreshList();
 
         listView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
@@ -98,9 +131,16 @@ public class RestaurantGUI extends Application {
 
     private void populeazaFormular(Produs p) {
         numeField.setText(p.getNume());
-        pretField.setText(String.valueOf(p.getPret()));
+        pretField.setText(String.format("%.2f", p.getPret()));
 
-        if (p instanceof Mancare) {
+        if (p instanceof Pizza) {
+            Pizza pizza = (Pizza) p;
+            detaliiLabel.setText("Pizza Info:");
+            String blatText = (pizza.getBlat() != null) ? pizza.getBlat() : "N/A";
+            String sosText = (pizza.getSos() != null) ? pizza.getSos() : "N/A";
+            String toppinguriText = (pizza.getToppinguri() != null) ? String.join(", ", pizza.getToppinguri()) : "N/A";
+            detaliiField.setText(String.format("Blat: %s, Sos: %s, Toppinguri: %s", blatText, sosText, toppinguriText));
+        } else if (p instanceof Mancare) {
             detaliiLabel.setText("Gramaj (g):");
             detaliiField.setText(String.valueOf(((Mancare) p).getGramaj()));
         } else if (p instanceof Bautura) {
@@ -165,6 +205,75 @@ public class RestaurantGUI extends Application {
                 alert.setContentText("Eroare la import: " + ex.getMessage());
                 alert.show();
             }
+        }
+    }
+
+    private void initializeazaProduse() {
+        List<Produs> existing = repository.getAll();
+        System.out.println("Current products in database: " + existing.size());
+
+        if (existing.size() >= 20) {
+            System.out.println("Database already has " + existing.size() + " products. Skipping initialization.");
+            return;
+        }
+        if (!existing.isEmpty()) {
+            System.out.println("Found partial initialization (" + existing.size() + " products). Clearing and re-initializing...");
+            repository.stergeToateProdusele();
+        }
+
+        System.out.println("Initializing database with menu products...");
+        int count = 0;
+
+        System.out.println("Adding vegetarian dishes...");
+        repository.salveazaProdus(new Mancare("Pizza Margherita", 45.0, 450, true)); count++;
+        repository.salveazaProdus(new Mancare("Supa Crema Ciuperci", 22.0, 300, true)); count++;
+        repository.salveazaProdus(new Mancare("Risotto cu Hribii de munte", 48.0, 320, true)); count++;
+        repository.salveazaProdus(new Mancare("Salata de Fructe", 18.0, 200, true)); count++;
+        repository.salveazaProdus(new Mancare("Panna Cotta cu fructe de padure", 28.0, 150, true)); count++;
+        System.out.println("  Added " + count + " vegetarian dishes");
+
+        System.out.println("Adding non-vegetarian dishes...");
+        repository.salveazaProdus(new Mancare("Paste Carbonara", 52.5, 400, false)); count++;
+        repository.salveazaProdus(new Mancare("Burger Gourmet Black Angus", 62.0, 380, false)); count++;
+        repository.salveazaProdus(new Mancare("Tiramisu Special", 120.0, 250, false)); count++;
+        repository.salveazaProdus(new Mancare("Cheesecake Vanilie", 32.0, 180, false)); count++;
+        System.out.println("  Added " + (count - 5) + " non-vegetarian dishes");
+
+        System.out.println("Adding non-alcoholic drinks...");
+        repository.salveazaProdus(new Bautura("Limonada", 15.0, 400, false)); count++;
+        repository.salveazaProdus(new Bautura("Apa Plata", 8.0, 500, false)); count++;
+        repository.salveazaProdus(new Bautura("Fresh Portocale", 19.0, 450, false)); count++;
+        repository.salveazaProdus(new Bautura("Ceai Verde cu miere", 14.0, 350, false)); count++;
+        System.out.println("  Added " + (count - 9) + " non-alcoholic drinks");
+
+        System.out.println("Adding alcoholic drinks...");
+        repository.salveazaProdus(new Bautura("Bere", 12.0, 500, true)); count++;
+        repository.salveazaProdus(new Bautura("Vin Rosu", 28.0, 150, true)); count++;
+        repository.salveazaProdus(new Bautura("Aperol Spritz", 35.0, 250, true)); count++;
+        repository.salveazaProdus(new Bautura("Gin Tonic", 38.0, 300, true)); count++;
+        System.out.println("  Added " + (count - 13) + " alcoholic drinks");
+
+        System.out.println("Adding custom pizzas...");
+        Pizza pizzaCustom = new Pizza.PizzaBuilder("Pufos", "Rosii")
+                .withExtraMozzarella()
+                .withCiuperci()
+                .withSalam()
+                .build();
+        repository.salveazaProdus(pizzaCustom); count++;
+        System.out.println("  Added Pizza Custom 1");
+
+        Pizza pizzaVeggie = new Pizza.PizzaBuilder("Subtire", "Busuioc")
+                .withCiuperci()
+                .withExtraMozzarella()
+                .build();
+        repository.salveazaProdus(pizzaVeggie); count++;
+        System.out.println("  Added Pizza Custom 2");
+
+        int finalCount = repository.getAll().size();
+        System.out.println("Database initialization complete! Expected: 20, Added: " + count + ", Final count: " + finalCount);
+
+        if (finalCount < 20) {
+            System.out.println("WARNING: Not all products were saved successfully!");
         }
     }
 

@@ -31,10 +31,12 @@ public class ProdusRepository {
                 em.merge(p);
             }
             em.getTransaction().commit();
+            System.out.println("Successfully saved: " + p.getNume() + " (ID: " + p.getId() + ")");
         } catch (Exception ex) {
             if (em.getTransaction().isActive()) {
                 em.getTransaction().rollback();
             }
+            System.out.println("ERROR saving product: " + p.getNume() + " - " + ex.getMessage());
             ex.printStackTrace();
         } finally {
             em.close();
@@ -45,8 +47,17 @@ public class ProdusRepository {
         EntityManager em = entityManagerFactory.createEntityManager();
         try {
             em.getTransaction().begin();
+            em.createNativeQuery("DELETE FROM pizza_toppinguri").executeUpdate();
             em.createQuery("DELETE FROM Produs").executeUpdate();
+
             em.getTransaction().commit();
+            System.out.println("All products deleted successfully.");
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            System.out.println("Error deleting products: " + ex.getMessage());
+            ex.printStackTrace();
         } finally {
             em.close();
         }
