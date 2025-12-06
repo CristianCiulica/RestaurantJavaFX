@@ -1,6 +1,6 @@
 package mip.restaurantfx;
 import java.util.Map;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
@@ -15,7 +15,7 @@ import java.io.IOException;
 public class Meniu {
     Map<String, List<Produs>> categoriiProduse;
     public Meniu() {
-        categoriiProduse = new HashMap<>();
+        categoriiProduse = new LinkedHashMap<>();
     }
 
     public void adaugaProdus(String categorie, Produs p) {
@@ -30,7 +30,9 @@ public class Meniu {
         }
         for (Map.Entry<String, List<Produs>> categorie : categoriiProduse.entrySet()) {
             System.out.println("\n--- " + categorie.getKey() + " ---");
-            for (Produs p : categorie.getValue()) {
+            List<Produs> produse = new ArrayList<>(categorie.getValue());
+            produse.sort(Comparator.comparing(Produs::getNume, String.CASE_INSENSITIVE_ORDER));
+            for (Produs p : produse) {
                 p.afisareProdus();
             }
         }
