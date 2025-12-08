@@ -11,21 +11,17 @@ public class Mancare extends Produs {
 
     public Mancare() {}
 
-    public Mancare(String nume, double Pret, int Gramaj, boolean vegetarian) {
-        super(nume, Pret);
-        this.gramaj = Gramaj;
+    public Mancare(String nume, double pret, int gramaj, boolean vegetarian) {
+        super(nume, pret);
+        this.gramaj = gramaj;
         this.vegetarian = vegetarian;
     }
 
     public int getGramaj() { return gramaj; }
-    public void setGramaj(int gramaj) { this.gramaj = gramaj; }
-
     public boolean isVegetarian() { return vegetarian; }
-    public void setVegetarian(boolean vegetarian) { this.vegetarian = vegetarian; }
 
     @Override
-    public void afisareProdus() {
-        String veggie = vegetarian ? " (Vegetarian)" : "";
-        System.out.println("> " + getNume() + " - " + getPret() + " RON - Gramaj: " + gramaj + "g" + veggie);
+    public String getDetalii() {
+        return gramaj + "g" + (vegetarian ? " (Vegetarian)" : "");
     }
 }

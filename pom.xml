@@ -81,7 +81,7 @@
                     <execution>
                         <id>default-cli</id>
                         <configuration>
-                            <mainClass>mip.restaurantfx/mip.restaurantfx.HelloApplication</mainClass>
+                            <mainClass>mip.restaurantfx/mip.restaurantfx.RestaurantGUI</mainClass>
                             <launcher>app</launcher>
                             <jlinkZipName>app</jlinkZipName>
                             <jlinkImageName>app</jlinkImageName>

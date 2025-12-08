@@ -56,16 +56,15 @@ public class Main {
         meniu.adaugaProdus("Bauturi Alcoolice", new Bautura("Aperol Spritz", 35.0, 250, true));
         meniu.adaugaProdus("Bauturi Alcoolice", new Bautura("Gin Tonic", 38.0, 300, true));
 
-        Pizza pizzaCustom = new Pizza.PizzaBuilder("Pufos", "Rosii")
-                .withExtraMozzarella()
-                .withCiuperci()
-                .withSalam()
+        Pizza pizzaCustom = new Pizza.Builder("Pufos", "Rosii") // Foloseste "Builder"
+                .addTopping("Mozzarella")
                 .build();
         meniu.adaugaProdus("Pizza Custom", pizzaCustom);
 
-        Pizza pizzaVeggie = new Pizza.PizzaBuilder("Subtire", "Busuioc")
-                .withCiuperci()
-                .withExtraMozzarella()
+
+        Pizza pizzaVeggie = new Pizza.Builder("Subtire", "Busuioc")
+                .addTopping("Ciuperci")
+                .addTopping("Extra Mozzarella")
                 .build();
         meniu.adaugaProdus("Pizza Custom", pizzaVeggie);
 
@@ -78,7 +77,7 @@ public class Main {
             System.out.println("Nu exista preparate vegetariene.");
         } else {
             for (Mancare m : vegetariene) {
-                m.afisareProdus();
+                System.out.println(m);
             }
         }
 
