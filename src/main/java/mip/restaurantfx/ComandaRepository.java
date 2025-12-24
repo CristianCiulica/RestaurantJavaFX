@@ -78,4 +78,26 @@ public class ComandaRepository {
             em.close();
         }
     }
+
+    /**
+     * Obține istoricul global al comenzilor plătite.
+     * Include detalii despre produse, linii de discount, ospătar și masă.
+     */
+    public List<Comanda> getIstoricGlobal() {
+        EntityManager em = getEntityManager();
+        try {
+            String jpql = "SELECT DISTINCT c FROM Comanda c " +
+                    "LEFT JOIN FETCH c.items i " +
+                    "LEFT JOIN FETCH i.produs " +
+                    "LEFT JOIN FETCH c.discountLines d " +
+                    "LEFT JOIN FETCH c.ospatar o " +
+                    "LEFT JOIN FETCH c.masa m " +
+                    "WHERE c.status = 'PLATITA' " +
+                    "ORDER BY c.dataCreare DESC";
+
+            return em.createQuery(jpql, Comanda.class).getResultList();
+        } finally {
+            em.close();
+        }
+    }
 }

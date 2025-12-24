@@ -104,8 +104,20 @@
     -fx-background-color: #b42318;
 }
 
+.button.pos {
+    -fx-padding: 10 16;
+    -fx-font-weight: 700;
+}
+
 .separator {
     -fx-opacity: 0.25;
+}
+
+/* Accent bar (requested: red bar) */
+.accent-bar {
+    -fx-background-color: #d92d20;
+    -fx-min-height: 4px;
+    -fx-pref-height: 4px;
 }
 
 /* Table */

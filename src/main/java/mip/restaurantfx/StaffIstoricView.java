@@ -28,7 +28,11 @@ public class StaffIstoricView {
         title.getStyleClass().add("title");
         title.setStyle("-fx-font-size: 18px;");
 
-        HBox top = new HBox(12, btnBack, title);
+        Button btnRefresh = new Button("Refresh");
+        btnRefresh.getStyleClass().add("outline");
+
+        HBox top = new HBox(12, btnBack, title, new Region(), btnRefresh);
+        HBox.setHgrow(top.getChildren().get(2), Priority.ALWAYS);
         top.getStyleClass().add("topbar");
         root.setTop(top);
 
@@ -62,8 +66,14 @@ public class StaffIstoricView {
         HBox center = new HBox(12, tabelCard, detaliiCard);
         root.setCenter(center);
 
+        Label empty = new Label("Nu există comenzi încă. Încasează o comandă și revino aici.");
+        empty.getStyleClass().add("subtitle");
+
         var comenzi = comandaRepo.getIstoricOspatar(ospatar.getId());
         tabel.setItems(FXCollections.observableArrayList(comenzi));
+        if (comenzi.isEmpty()) {
+            listDetalii.getItems().setAll(empty.getText());
+        }
 
         tabel.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
             listDetalii.getItems().clear();
@@ -77,6 +87,15 @@ public class StaffIstoricView {
             }
             listDetalii.getItems().add("--------------------");
             listDetalii.getItems().add(String.format("TOTAL: %.2f", newV.getTotal()));
+        });
+
+        btnRefresh.setOnAction(e -> {
+            var refreshed = comandaRepo.getIstoricOspatar(ospatar.getId());
+            tabel.setItems(FXCollections.observableArrayList(refreshed));
+            listDetalii.getItems().clear();
+            if (refreshed.isEmpty()) {
+                listDetalii.getItems().setAll(empty.getText());
+            }
         });
 
         Scene scene = new Scene(root, 980, 620);

@@ -2,8 +2,7 @@ package mip.restaurantfx;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Entity
 @Table(name = "comenzi")
@@ -37,7 +36,7 @@ public class Comanda {
     private List<ComandaItem> items = new ArrayList<>();
 
     @OneToMany(mappedBy = "comanda", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    private List<DetaliuComanda> discountLines = new ArrayList<>();
+    private Set<DetaliuComanda> discountLines = new LinkedHashSet<>();
 
     private double total;
 
@@ -114,7 +113,7 @@ public class Comanda {
     public Masa getMasa() { return masa; }
     public void setMasa(Masa masa) { this.masa = masa; }
     public List<ComandaItem> getItems() { return items; }
-    public List<DetaliuComanda> getDiscountLines() { return discountLines; }
+    public Set<DetaliuComanda> getDiscountLines() { return discountLines; }
     public double getTotal() { return total; }
     public User getOspatar() { return ospatar; }
     public void setOspatar(User ospatar) { this.ospatar = ospatar; }

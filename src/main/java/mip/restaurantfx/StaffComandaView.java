@@ -247,6 +247,9 @@ public class StaffComandaView {
     }
 
     private void salveazaComanda(boolean ramaneOcupata) {
+        // Recalculeaza inainte de salvare (ca sa persiste totalul si discounturile de azi)
+        recalculeazaTotal();
+
         // atasam ospatarul (pentru istoric)
         comandaCurenta.setOspatar(ospatar);
 
@@ -254,7 +257,6 @@ public class StaffComandaView {
         masa.setEsteOcupata(ramaneOcupata);
         masaRepo.save(masa);
 
-        // Daca finalizam, marcam comanda ca platita
         if (!ramaneOcupata) {
             comandaCurenta.setStatus(Comanda.StatusComanda.PLATITA);
         }
@@ -262,3 +264,4 @@ public class StaffComandaView {
         comandaRepo.save(comandaCurenta);
     }
 }
+

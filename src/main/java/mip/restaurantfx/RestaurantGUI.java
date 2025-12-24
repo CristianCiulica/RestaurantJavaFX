@@ -2,18 +2,16 @@ package mip.restaurantfx;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
-import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
 import java.util.Optional;
 
 public class RestaurantGUI extends Application {
 
-    private UserRepository userRepo = new UserRepository();
+    private final UserRepository userRepo = new UserRepository();
 
     @Override
     public void start(Stage stage) {
@@ -71,7 +69,7 @@ public class RestaurantGUI extends Application {
             if (userGasit.isPresent()) {
                 deschideInterfata(stage, userGasit.get());
             } else {
-                lblMesaj.setText("Date incorecte! Incearca admin/admin sau staff/1234");
+                lblMesaj.setText("Date incorecte. Verifică user/parola și încearcă din nou.");
             }
         });
 
@@ -83,7 +81,10 @@ public class RestaurantGUI extends Application {
         });
 
         Scene scene = new Scene(root, 520, 480);
-        scene.getStylesheets().add(RestaurantGUI.class.getResource("/mip/restaurantfx/theme.css").toExternalForm());
+        var css = RestaurantGUI.class.getResource("/mip/restaurantfx/theme.css");
+        if (css != null) {
+            scene.getStylesheets().add(css.toExternalForm());
+        }
         stage.setScene(scene);
         stage.show();
     }
@@ -96,7 +97,7 @@ public class RestaurantGUI extends Application {
             new StaffMeseView().start(stage, user);
         }
         else if (user.getRol() == User.Role.ADMIN) {
-            new Alert(Alert.AlertType.INFORMATION, "Salut Sefu'! Interfata ta urmeaza.").show();
+            new AdminView().start(stage, user);
         }
     }
     @Override

@@ -10,8 +10,8 @@ import javafx.stage.Stage;
 import java.util.List;
 
 public class StaffMeseView {
-    private MasaRepository masaRepo = new MasaRepository();
-    private ComandaRepository comandaRepo = new ComandaRepository();
+    private final MasaRepository masaRepo = new MasaRepository();
+    private final ComandaRepository comandaRepo = new ComandaRepository();
     private User ospatarCurent;
 
     public void start(Stage stage, User ospatar) {
@@ -28,54 +28,59 @@ public class StaffMeseView {
         Label lblSalut = new Label("Salut, " + ospatar.getNume());
         lblSalut.getStyleClass().add("title");
         lblSalut.setStyle("-fx-font-size: 18px;");
-        Label lblSub = new Label("Selectează o masă pentru a deschide comanda");
+        Label lblSub = new Label("Alege masa pentru a deschide comanda");
         lblSub.getStyleClass().add("subtitle");
         titles.getChildren().addAll(lblSalut, lblSub);
 
         Button btnIstoric = new Button("Istoricul meu");
-        btnIstoric.getStyleClass().add("outline");
+        btnIstoric.getStyleClass().addAll("primary", "pos");
         btnIstoric.setOnAction(e -> new StaffIstoricView().start(stage, ospatarCurent));
 
         Button btnLogout = new Button("Logout");
-        btnLogout.getStyleClass().add("outline");
+        btnLogout.getStyleClass().addAll("outline", "pos");
         btnLogout.setOnAction(e -> {
             try {
                 new RestaurantGUI().start(stage);
-            } catch (Exception ex) { ex.printStackTrace(); }
+            } catch (Exception ex) {
+                new Alert(Alert.AlertType.ERROR, "Eroare la logout: " + ex.getMessage()).show();
+            }
         });
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         header.getChildren().addAll(titles, spacer, btnIstoric, btnLogout);
-        root.setTop(header);
 
-        // --- Zona Centrala: Lista de Mese ---
-        FlowPane mesePanel = new FlowPane();
-        mesePanel.setHgap(16);
-        mesePanel.setVgap(16);
-        mesePanel.setPadding(new Insets(16));
+        Region accent = new Region();
+        accent.getStyleClass().add("accent-bar");
 
-        VBox centerCard = new VBox(12, new Label("Sala"), mesePanel);
+        VBox topBox = new VBox(header, accent);
+        root.setTop(topBox);
+
+        // --- Mese in grid ---
+        TilePane grid = new TilePane();
+        grid.setHgap(16);
+        grid.setVgap(16);
+        grid.setPadding(new Insets(16));
+        grid.setPrefColumns(4);
+
+        VBox centerCard = new VBox(grid);
         centerCard.getStyleClass().add("card");
         root.setCenter(centerCard);
 
         List<Masa> mese = masaRepo.getAllMese();
-
         for (Masa masa : mese) {
             boolean ocupata = comandaRepo.getComandaActiva(masa.getId()) != null;
 
             Button btnMasa = new Button("Masa " + masa.getNumarMasa() + "\n" + (ocupata ? "Ocupat" : "Liber"));
-            btnMasa.setPrefSize(140, 110);
+            btnMasa.setPrefSize(160, 120);
             btnMasa.getStyleClass().addAll("table-tile", ocupata ? "table-occupied" : "table-free");
-
-            btnMasa.setOnAction(e -> {
-                deschideComanda(stage, masa);
-            });
-            mesePanel.getChildren().add(btnMasa);
+            btnMasa.setOnAction(e -> deschideComanda(stage, masa));
+            grid.getChildren().add(btnMasa);
         }
 
         Scene scene = new Scene(root, 920, 620);
-        scene.getStylesheets().add(StaffMeseView.class.getResource("/mip/restaurantfx/theme.css").toExternalForm());
+        var css = StaffMeseView.class.getResource("/mip/restaurantfx/theme.css");
+        if (css != null) scene.getStylesheets().add(css.toExternalForm());
         stage.setScene(scene);
         stage.setTitle("La Andrei • Staff");
     }
