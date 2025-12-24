@@ -206,117 +206,41 @@
     -fx-padding: 14;
 }
 
-/* Toggle (Checkbox ca switch modern) */
-.check-box.toggle {
-    -fx-padding: 6 10;
-    -fx-background-color: transparent;
+/* Filter panel (modern card) */
+.filter-card {
+    -fx-background-color: rgba(255,255,255,0.92);
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-color: #eaecf5;
+    -fx-padding: 12;
+    -fx-effect: dropshadow(gaussian, rgba(16,24,40,0.08), 12, 0.20, 0, 5);
 }
 
-.check-box.toggle .box {
-    -fx-background-color: #e7eaf3;
-    -fx-border-color: #d0d5dd;
-    -fx-background-radius: 999;
-    -fx-border-radius: 999;
-    -fx-padding: 0;
-    -fx-min-width: 44;
-    -fx-min-height: 22;
-    -fx-pref-width: 44;
-    -fx-pref-height: 22;
-    -fx-max-width: 44;
-    -fx-max-height: 22;
-}
-
-.check-box.toggle .mark {
-    /* ascundem bifa clasică */
-    -fx-background-color: transparent;
-    -fx-shape: "";
-}
-
-.check-box.toggle .box {
-    /* knob */
-    -fx-background-insets: 0;
-}
-
-.check-box.toggle:selected .box {
-    -fx-background-color: rgba(105, 65, 198, 0.25);
-    -fx-border-color: rgba(105, 65, 198, 0.55);
-}
-
-/* folosim pseudo-class-ul :selected ca să mutăm knob-ul (hack: background layers) */
-.check-box.toggle .box {
-    -fx-background-insets: 0;
-    -fx-background-radius: 999;
-    -fx-border-radius: 999;
-    -fx-alignment: center-left;
-}
-
-.check-box.toggle .box {
-    -fx-background-color: #e7eaf3;
-}
-
-.check-box.toggle {
-    -fx-content-display: left;
-    -fx-graphic-text-gap: 8;
-}
-
-.check-box.toggle .box {
-    -fx-background-insets: 0;
-}
-
-.check-box.toggle .box {
-    -fx-background-radius: 999;
-}
-
-.check-box.toggle .box {
-    -fx-effect: dropshadow(gaussian, rgba(16,24,40,0.06), 8, 0.2, 0, 2);
-}
-
-.check-box.toggle .box {
-    -fx-background-insets: 0;
-}
-
-/* knob desenat ca un background secundar */
-.check-box.toggle .box {
-    -fx-background-color: linear-gradient(to bottom, #eceff7, #e2e6f2);
-}
-
-.check-box.toggle:selected .box {
-    -fx-background-color: linear-gradient(to bottom, rgba(105,65,198,0.35), rgba(105,65,198,0.22));
-}
-
-/* Simulăm knob-ul folosind padding + border pe box, plus un "thumb" din mark nu e stabil => folosim region via css shape? */
-.check-box.toggle .box {
-    -fx-border-width: 1;
-}
-
-.check-box.toggle {
-    -fx-font-size: 12.5px;
-    -fx-font-weight: 600;
+/* Chips (segmented / pill buttons) */
+.button.chip {
+    -fx-background-color: #ffffff;
     -fx-text-fill: #101828;
-}
-
-/* Thumb: folosim pseudo-elementul .mark ca cerc */
-.check-box.toggle .mark {
-    -fx-background-color: white;
     -fx-background-radius: 999;
-    -fx-min-width: 16;
-    -fx-min-height: 16;
-    -fx-pref-width: 16;
-    -fx-pref-height: 16;
-    -fx-max-width: 16;
-    -fx-max-height: 16;
-    -fx-effect: dropshadow(gaussian, rgba(16,24,40,0.20), 8, 0.2, 0, 2);
+    -fx-border-radius: 999;
+    -fx-border-color: #eaecf5;
+    -fx-padding: 6 10;
+    -fx-font-weight: 700;
+    -fx-font-size: 12px;
 }
 
-.check-box.toggle .box {
-    -fx-padding: 3;
+.button.chip:hover {
+    -fx-background-color: #f2f4ff;
 }
 
-.check-box.toggle:selected .box {
-    -fx-alignment: center-right;
+.button.chip-selected {
+    -fx-background-color: rgba(105, 65, 198, 0.16);
+    -fx-border-color: rgba(105, 65, 198, 0.55);
+    -fx-text-fill: #3d2e8f;
 }
 
-.check-box.toggle:focused .box {
-    -fx-border-color: rgba(105, 65, 198, 0.75);
-    -fx-effect: dropshadow(gaussian, rgba(105,65,198,0.18), 10, 0.18, 0, 0);
+/* Slightly more compact text fields for filters */
+.text-field.compact {
+    -fx-padding: 8 10;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
 }
