@@ -9,9 +9,6 @@ import javafx.stage.Stage;
 
 import java.time.format.DateTimeFormatter;
 
-/**
- * Istoric personal (Iteratia 7): vede doar comenzile platite ale ospatarului curent.
- */
 public class StaffIstoricView {
 
     private final ComandaRepository comandaRepo = new ComandaRepository();
@@ -54,7 +51,6 @@ public class StaffIstoricView {
         tabel.getColumns().addAll(colData, colMasa, colTotal);
         tabel.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        // Detalii bon selectat
         ListView<String> listDetalii = new ListView<>();
         VBox detaliiCard = new VBox(10, new Label("Detalii bon"), listDetalii);
         detaliiCard.getStyleClass().add("card");

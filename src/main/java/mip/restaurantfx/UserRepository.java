@@ -15,7 +15,6 @@ public class UserRepository {
     public Optional<User> login(String username, String password) {
         EntityManager em = getEntityManager();
         try {
-            // Cautam un user care are username-ul SI parola specificata
             TypedQuery<User> query = em.createQuery(
                     "SELECT u FROM User u WHERE u.username = :user AND u.password = :pass", User.class);
             query.setParameter("user", username);
@@ -23,7 +22,7 @@ public class UserRepository {
 
             return Optional.of(query.getSingleResult());
         } catch (NoResultException e) {
-            return Optional.empty(); // User sau parola gresite
+            return Optional.empty();
         } finally {
             em.close();
         }
@@ -55,9 +54,6 @@ public class UserRepository {
         }
     }
 
-    /**
-     * Sterge userul cu username-ul dat (daca exista). Returneaza true daca s-a sters.
-     */
     public boolean deleteByUsername(String username) {
         EntityManager em = getEntityManager();
         try {
@@ -69,7 +65,6 @@ public class UserRepository {
                 return false;
             }
 
-            // trebuie re-atasat la EM curent
             User managed = em.find(User.class, userOpt.get().getId());
             if (managed == null) {
                 em.getTransaction().rollback();
@@ -87,9 +82,6 @@ public class UserRepository {
         }
     }
 
-    /**
-     * Returneaza toti userii cu rolul cerut (ex: STAFF) sortati alfabetic dupa nume.
-     */
     public List<User> findByRole(User.Role role) {
         EntityManager em = getEntityManager();
         try {

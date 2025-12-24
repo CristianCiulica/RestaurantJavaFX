@@ -13,7 +13,6 @@ import java.util.Optional;
 public class RestaurantGUI extends Application {
 
     private static final String LOGIN_BG_RESOURCE = "/login-bg.jpg";
-    // Dacă vrei să folosești un fișier local (nu recomand pentru proiect/pachet), pune aici calea completă și setează USE_LOCAL_BG=true.
     private static final boolean USE_LOCAL_BG = false;
     private static final String LOGIN_BG_LOCAL_FILE = "D:/path/to/your/image.jpg";
 
@@ -21,15 +20,12 @@ public class RestaurantGUI extends Application {
 
     @Override
     public void start(Stage stage) {
-        // 1. Asiguram datele initiale
         DataSeeder.seed();
 
         stage.setTitle("Restaurant La Andrei - Login");
-
-        // UI Elemente
-        Label lblTitlu = new Label("La Andrei");
+        Label lblTitlu = new Label("Restaurantul La Andrei");
         lblTitlu.getStyleClass().add("title");
-        Label lblSub = new Label("Login pentru Staff/Admin sau intră ca Guest");
+        Label lblSub = new Label("Login pentru Staff/Admin sau intra ca Guest");
         lblSub.getStyleClass().add("subtitle");
         lblSub.setWrapText(true);
 
@@ -65,8 +61,6 @@ public class RestaurantGUI extends Application {
         card.setMaxHeight(420);
         card.setMinHeight(Region.USE_PREF_SIZE);
         card.setFillWidth(true);
-
-        // Centrare + overlay pentru fundal
         StackPane root = new StackPane();
         root.getStyleClass().add("login-root");
 
@@ -77,8 +71,6 @@ public class RestaurantGUI extends Application {
 
         root.getChildren().addAll(overlay, card);
         root.setPadding(new Insets(18));
-
-        // Background image: resource (recommended) or local file
         if (USE_LOCAL_BG) {
             File f = new File(LOGIN_BG_LOCAL_FILE);
             if (f.exists()) {
@@ -96,10 +88,6 @@ public class RestaurantGUI extends Application {
                         "-fx-background-repeat: no-repeat;");
             }
         }
-
-        // Actiuni Butoane
-
-        // A. LOGIN STAFF/ADMIN
         btnLogin.setOnAction(e -> {
             String u = txtUser.getText();
             String p = txtPass.getText();
@@ -113,9 +101,7 @@ public class RestaurantGUI extends Application {
             }
         });
 
-        // B. LOGIN GUEST
         btnGuest.setOnAction(e -> {
-            // Cream un user temporar pentru guest
             User guestUser = new User("guest", "", "Vizitator", User.Role.CLIENT);
             deschideInterfata(stage, guestUser);
         });

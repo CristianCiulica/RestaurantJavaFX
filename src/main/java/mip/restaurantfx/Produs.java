@@ -17,7 +17,6 @@ public abstract class Produs {
 
     public Produs() {}
 
-    // Compatibil cu codul existent (Mancare/Bautura apeleaza super(nume, pret))
     public Produs(String nume, double pret) {
         this(nume, pret, null);
     }
@@ -44,9 +43,6 @@ public abstract class Produs {
 
     public void setCategorie(String categorie) { this.categorie = categorie; }
 
-    /**
-     * Text scurt pentru panoul de detalii (gramaj/volum etc.).
-     */
     public abstract String getDetalii();
 
     @Override

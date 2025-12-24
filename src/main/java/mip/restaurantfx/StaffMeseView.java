@@ -20,7 +20,6 @@ public class StaffMeseView {
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(16));
 
-        // --- Header ---
         HBox header = new HBox(12);
         header.getStyleClass().add("topbar");
 
@@ -56,7 +55,6 @@ public class StaffMeseView {
         VBox topBox = new VBox(header, accent);
         root.setTop(topBox);
 
-        // --- Mese in grid ---
         TilePane grid = new TilePane();
         grid.setHgap(16);
         grid.setVgap(16);

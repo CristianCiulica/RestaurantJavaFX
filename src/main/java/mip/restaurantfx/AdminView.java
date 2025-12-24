@@ -7,12 +7,6 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
-/**
- * Interfata Manager (Admin):
- * - Personal: lista ospatarilor (vizualizare + adaugare rapida)
- * - Meniu: refresh + import/export JSON
- * - Istoric global: tabel cu toate comenzile platite + detalii
- */
 public class AdminView {
 
     private final UserRepository userRepo = new UserRepository();
@@ -116,7 +110,6 @@ public class AdminView {
                 return;
             }
 
-            // format: "Nume (username)" => extragem username
             int open = selected.lastIndexOf('(');
             int close = selected.lastIndexOf(')');
             if (open < 0 || close < 0 || close <= open + 1) {

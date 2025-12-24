@@ -101,28 +101,24 @@ public class ClientView {
     private void aplicaFiltre() {
         List<Produs> toate = produsRepo.getAll();
 
-        // Folosim Streams API pentru filtrare (Cerinta Iteratia 3/7)
         List<Produs> filtrate = toate.stream()
                 .filter(p -> {
-                    // Filtru Nume
                     String cautare = txtSearch.getText().toLowerCase();
                     if (!cautare.isEmpty() && !p.getNume().toLowerCase().contains(cautare)) return false;
 
-                    // Filtru Vegetarian
                     if (chkVegetarian.isSelected()) {
                         if (p instanceof Mancare) {
                             return ((Mancare) p).isVegetarian();
                         }
-                        return false; // Bauturile nu sunt marcate explicit ca "Vegetarian" in clasa noastra, sau le consideram false
+                        return false;
                     }
 
-                    // Filtru Pret Maxim
                     try {
                         if (!txtPretMax.getText().isEmpty()) {
                             double max = Double.parseDouble(txtPretMax.getText());
                             if (p.getPret() > max) return false;
                         }
-                    } catch (NumberFormatException e) { /* Ignoram daca nu e numar */ }
+                    } catch (NumberFormatException e) { }
 
                     return true;
                 })

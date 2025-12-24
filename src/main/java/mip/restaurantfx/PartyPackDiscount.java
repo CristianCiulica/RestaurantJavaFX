@@ -4,11 +4,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * Party Pack (Iteratia 7):
- * - La 4 Pizza comandate, una e gratis (cea mai ieftina pizza).
- * Reducerea apare pe bon ca linie separata (valoare negativa).
- */
 public class PartyPackDiscount implements DiscountRule {
 
     @Override
@@ -53,4 +48,3 @@ public class PartyPackDiscount implements DiscountRule {
         return n != null && n.toLowerCase().contains("pizza");
     }
 }
-

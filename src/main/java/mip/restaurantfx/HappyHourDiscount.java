@@ -4,11 +4,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * Iteratia 7: Happy Hour Drinks
- * - Fiecare a doua bautura comandata are reducere 50%.
- * Reducerea apare pe bon ca o linie separata cu valoare negativa.
- */
 public class HappyHourDiscount implements DiscountRule {
 
     @Override
@@ -17,7 +12,6 @@ public class HappyHourDiscount implements DiscountRule {
             return;
         }
 
-        // Strangem toate bauturile (inclusiv cantitatile) ca preturi unitare
         List<Double> bauturiPretUnit = new ArrayList<>();
         for (ComandaItem item : comanda.getItems()) {
             if (item.getProdus() instanceof Bautura) {
@@ -31,8 +25,6 @@ public class HappyHourDiscount implements DiscountRule {
             return;
         }
 
-        // Pentru a da "fiecare a doua" cea mai avantajoasa/consistenta, ordonam descrescator
-        // si aplicam reducerea pe a 2-a, a 4-a, etc.
         bauturiPretUnit.sort(Comparator.reverseOrder());
 
         double discountTotal = 0.0;

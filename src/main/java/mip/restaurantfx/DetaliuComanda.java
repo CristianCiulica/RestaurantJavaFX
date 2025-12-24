@@ -2,10 +2,6 @@ package mip.restaurantfx;
 
 import jakarta.persistence.*;
 
-/**
- * Linie pe bon care nu este neaparat un produs (ex: reduceri/discount-uri).
- * Valoarea trebuie sa fie NEGATIVA pentru reducere.
- */
 @Entity
 @Table(name = "detalii_comanda")
 public class DetaliuComanda {

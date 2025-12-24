@@ -11,17 +11,12 @@ import javafx.stage.Stage;
 import java.io.File;
 import java.util.List;
 
-/**
- * Utilitar mic, folosit de Manager pentru Import/Export JSON.
- * IMPORTANT: folosim tipuri polimorfice (Mancare/Bautura/Pizza), deci activam metadata de tip.
- */
 public class RestaurantFXExportImport {
 
     private ObjectMapper mapper() {
         ObjectMapper mapper = new ObjectMapper();
         mapper.enable(SerializationFeature.INDENT_OUTPUT);
 
-        // Include tipul concret (@class) pentru a putea importa o lista de Produs corect.
         var ptv = BasicPolymorphicTypeValidator.builder()
                 .allowIfSubType("mip.restaurantfx")
                 .build();

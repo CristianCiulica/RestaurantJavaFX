@@ -24,22 +24,19 @@ public class StaffComandaView {
     private User ospatar;
     private Masa masa;
 
-    // Elemente UI
     private TableView<Object> tabelBon = new TableView<>();
     private Label lblTotal = new Label("Total: 0.00 RON");
-    private Label lblDiscountInfo = new Label(""); // Pentru afisare info Happy Hour
+    private Label lblDiscountInfo = new Label("");
 
     public void start(Stage stage, User ospatar, Masa masaSelectata) {
         this.ospatar = ospatar;
         this.masa = masaSelectata;
 
-        // 1. Initializare Comanda (Noua sau Existenta)
         Comanda existenta = comandaRepo.getComandaActiva(masa.getId());
         if (existenta != null) {
             this.comandaCurenta = existenta;
         } else {
             this.comandaCurenta = new Comanda(masa);
-            // IMPORTANT: cand deschidem o comanda noua, masa trebuie marcata ocupata imediat
             if (!masa.isEsteOcupata()) {
                 masa.setEsteOcupata(true);
                 masaRepo.save(masa);
@@ -49,7 +46,6 @@ public class StaffComandaView {
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(16));
 
-        // --- HEADER ---
         Label lblTitlu = new Label("Masa " + masa.getNumarMasa() + " • Ospătar: " + ospatar.getNume());
         lblTitlu.getStyleClass().add("title");
         lblTitlu.setStyle("-fx-font-size: 18px;");
@@ -62,7 +58,6 @@ public class StaffComandaView {
         top.getStyleClass().add("topbar");
         root.setTop(top);
 
-        // --- STANGA: Selector Produse ---
         ListView<Produs> listProduse = new ListView<>();
         listProduse.setItems(FXCollections.observableArrayList(produsRepo.getAll()));
 
@@ -76,7 +71,6 @@ public class StaffComandaView {
         root.setLeft(stanga);
         BorderPane.setMargin(stanga, new Insets(12, 12, 12, 0));
 
-        // --- DREAPTA: Bon ---
         tabelBon.getColumns().clear();
 
         TableColumn<Object, String> colNume = new TableColumn<>("Produs");
@@ -115,14 +109,12 @@ public class StaffComandaView {
         tabelBon.getColumns().addAll(colNume, colCant, colPret);
         tabelBon.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
-        refreshTabel(); // Populeaza tabelul
+        refreshTabel();
 
-        // --- ZONA DE JOS: Total si Actiuni ---
         VBox dreapta = new VBox(10);
         dreapta.getStyleClass().add("card");
         dreapta.setPrefWidth(460);
 
-        // POS controls for selected line
         HBox posControls = new HBox(8);
         Button btnMinus = new Button("−");
         btnMinus.getStyleClass().add("outline");
@@ -154,9 +146,6 @@ public class StaffComandaView {
         );
         root.setCenter(dreapta);
 
-        // --- LOGICA BUTOANE ---
-
-        // 1. Adaugare Produs
         btnAdauga.setOnAction(e -> {
             Produs p = listProduse.getSelectionModel().getSelectedItem();
             if (p != null) {
@@ -166,20 +155,17 @@ public class StaffComandaView {
             }
         });
 
-        // 2. Salvare Intermediara
         btnSalveaza.setOnAction(e -> {
-            salveazaComanda(true); // true = ramane ocupata
+            salveazaComanda(true);
             new Alert(Alert.AlertType.INFORMATION, "Comanda salvata!").show();
         });
 
-        // 3. Finalizare (Incasare)
         btnFinalizeaza.setOnAction(e -> {
-            salveazaComanda(false); // false = eliberam masa
+            salveazaComanda(false);
             new Alert(Alert.AlertType.INFORMATION, "Comanda finalizata! Masa este acum libera.").showAndWait();
-            new StaffMeseView().start(stage, ospatar); // Ne intoarcem la sala
+            new StaffMeseView().start(stage, ospatar);
         });
 
-        // POS actions
         btnPlus.setOnAction(e -> {
             Object row = tabelBon.getSelectionModel().getSelectedItem();
             if (row instanceof ComandaItem ci) {
@@ -212,7 +198,6 @@ public class StaffComandaView {
             }
         });
 
-        // Calcul initial la deschidere
         recalculeazaTotal();
 
         Scene scene = new Scene(root, 1040, 640);
@@ -232,28 +217,22 @@ public class StaffComandaView {
     }
 
     private void recalculeazaTotal() {
-        // total de baza (fara reduceri)
         comandaCurenta.clearDiscountLines();
         comandaCurenta.calculeazaTotal();
 
-        // Oferte active (ordine fixa = rezultate predictibile)
         new HappyHourDiscount().aplicaDiscount(comandaCurenta);
         new MealDealDiscount().aplicaDiscount(comandaCurenta);
         new PartyPackDiscount().aplicaDiscount(comandaCurenta);
 
-        // total final
         comandaCurenta.calculeazaTotal();
         lblTotal.setText(String.format("TOTAL DE PLATA: %.2f RON", comandaCurenta.getTotal()));
     }
 
     private void salveazaComanda(boolean ramaneOcupata) {
-        // Recalculeaza inainte de salvare (ca sa persiste totalul si discounturile de azi)
         recalculeazaTotal();
 
-        // atasam ospatarul (pentru istoric)
         comandaCurenta.setOspatar(ospatar);
 
-        // Actualizam statusul mesei
         masa.setEsteOcupata(ramaneOcupata);
         masaRepo.save(masa);
 
@@ -264,4 +243,3 @@ public class StaffComandaView {
         comandaRepo.save(comandaCurenta);
     }
 }
-

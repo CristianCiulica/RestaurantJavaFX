@@ -8,11 +8,9 @@ import java.util.List;
 public class ComandaRepository {
 
     private EntityManager getEntityManager() {
-        // Asigură-te că PersistenceManager e configurat corect în proiectul tău
         return PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
     }
 
-    // Salvare sau Update (Merge)
     public void save(Comanda comanda) {
         EntityManager em = getEntityManager();
         try {
@@ -33,16 +31,12 @@ public class ComandaRepository {
         }
     }
 
-    /**
-     * Caută comanda activă (DESCHISA) pentru o anumită masă.
-     * Folosește JOIN FETCH pentru a aduce și produsele într-un singur query.
-     */
     public Comanda getComandaActiva(Long masaId) {
         EntityManager em = getEntityManager();
         try {
             String jpql = "SELECT c FROM Comanda c " +
-                    "LEFT JOIN FETCH c.items i " +   // Aduce lista de items
-                    "LEFT JOIN FETCH i.produs " +    // Aduce detaliile produselor (nume, pret)
+                    "LEFT JOIN FETCH c.items i " +
+                    "LEFT JOIN FETCH i.produs " +
                     "WHERE c.masa.id = :masaId " +
                     "AND c.status = 'DESCHISA'";
 
@@ -51,16 +45,12 @@ public class ComandaRepository {
                     .getSingleResult();
 
         } catch (NoResultException e) {
-            return null; // Masa este liberă
+            return null;
         } finally {
             em.close();
         }
     }
 
-    /**
-     * Obține istoricul comenzilor pentru un anumit ospătar.
-     * Include detalii despre produse și liniile de discount.
-     */
     public List<Comanda> getIstoricOspatar(Long ospatarId) {
         EntityManager em = getEntityManager();
         try {
@@ -79,10 +69,6 @@ public class ComandaRepository {
         }
     }
 
-    /**
-     * Obține istoricul global al comenzilor plătite.
-     * Include detalii despre produse, linii de discount, ospătar și masă.
-     */
     public List<Comanda> getIstoricGlobal() {
         EntityManager em = getEntityManager();
         try {
