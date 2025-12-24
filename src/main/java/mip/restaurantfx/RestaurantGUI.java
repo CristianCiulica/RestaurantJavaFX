@@ -2,6 +2,7 @@ package mip.restaurantfx;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
@@ -25,7 +26,10 @@ public class RestaurantGUI extends Application {
         stage.setTitle("Restaurant La Andrei - Login");
         Label lblTitlu = new Label("Restaurantul La Andrei");
         lblTitlu.getStyleClass().add("title");
-        Label lblSub = new Label("Login pentru Staff/Admin sau intra ca Guest");
+        lblTitlu.setAlignment(Pos.CENTER);
+        lblTitlu.setMaxWidth(Double.MAX_VALUE);
+
+        Label lblSub = new Label("Login pentru Staff/Admin sau intra ca Guest pentru a comanda");
         lblSub.getStyleClass().add("subtitle");
         lblSub.setWrapText(true);
 
@@ -41,6 +45,13 @@ public class RestaurantGUI extends Application {
         Button btnGuest = new Button("Continuă ca Guest");
         btnGuest.getStyleClass().add("outline");
 
+        VBox buttonsBox = new VBox(8, btnLogin, btnGuest);
+        buttonsBox.setAlignment(Pos.CENTER);
+        buttonsBox.setFillWidth(true);
+
+        Region buttonsSpacer = new Region();
+        buttonsSpacer.setMinHeight(12);
+
         Label lblMesaj = new Label();
         lblMesaj.getStyleClass().add("muted");
         lblMesaj.setWrapText(true);
@@ -51,8 +62,8 @@ public class RestaurantGUI extends Application {
                 new Separator(),
                 new Label("User"), txtUser,
                 new Label("Parolă"), txtPass,
-                btnLogin,
-                btnGuest,
+                buttonsSpacer,
+                buttonsBox,
                 lblMesaj
         );
         card.getStyleClass().addAll("card", "login-card");
