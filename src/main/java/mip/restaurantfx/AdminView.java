@@ -67,7 +67,7 @@ public class AdminView {
         VBox card = new VBox(10);
         card.getStyleClass().add("card");
 
-        Label lbl = new Label("Ospătari (Staff)");
+        Label lbl = new Label("Ospătari");
 
         ListView<String> list = new ListView<>();
 
@@ -78,7 +78,6 @@ public class AdminView {
         ));
         loadStaff.run();
 
-        // Adaugare rapida (demo)
         HBox addBox = new HBox(8);
         TextField txtUser = new TextField();
         txtUser.setPromptText("username");
@@ -86,8 +85,12 @@ public class AdminView {
         txtPass.setPromptText("parola");
         TextField txtNume = new TextField();
         txtNume.setPromptText("nume" );
-        Button btnAdd = new Button("Adaugă Staff");
+
+        Button btnAdd = new Button("Adaugă");
         btnAdd.getStyleClass().add("primary");
+
+        Button btnDelete = new Button("Șterge");
+        btnDelete.getStyleClass().add("outline");
 
         btnAdd.setOnAction(e -> {
             if (txtUser.getText().isBlank() || txtPass.getText().isBlank() || txtNume.getText().isBlank()) {
@@ -106,7 +109,45 @@ public class AdminView {
             }
         });
 
-        addBox.getChildren().addAll(txtUser, txtPass, txtNume, btnAdd);
+        btnDelete.setOnAction(e -> {
+            String selected = list.getSelectionModel().getSelectedItem();
+            if (selected == null || selected.isBlank()) {
+                new Alert(Alert.AlertType.WARNING, "Selectează un ospătar din listă ca să-l ștergi.").show();
+                return;
+            }
+
+            // format: "Nume (username)" => extragem username
+            int open = selected.lastIndexOf('(');
+            int close = selected.lastIndexOf(')');
+            if (open < 0 || close < 0 || close <= open + 1) {
+                new Alert(Alert.AlertType.ERROR, "Nu pot determina username-ul din selecție.").show();
+                return;
+            }
+            String username = selected.substring(open + 1, close).trim();
+
+            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
+                    "Sigur vrei să ștergi ospătarul: " + selected + " ?",
+                    ButtonType.YES, ButtonType.NO);
+            confirm.setHeaderText(null);
+            var res = confirm.showAndWait();
+            if (res.isEmpty() || res.get() != ButtonType.YES) return;
+
+            try {
+                boolean deleted = userRepo.deleteByUsername(username);
+                if (deleted) {
+                    new Alert(Alert.AlertType.INFORMATION, "Ospătar șters.").show();
+                    loadStaff.run();
+                } else {
+                    new Alert(Alert.AlertType.WARNING, "Userul nu mai există.").show();
+                    loadStaff.run();
+                }
+            } catch (Exception ex) {
+                new Alert(Alert.AlertType.ERROR, "Nu s-a putut șterge userul. Verifică dacă are comenzi asociate.").show();
+                ex.printStackTrace();
+            }
+        });
+
+        addBox.getChildren().addAll(txtUser, txtPass, txtNume, btnAdd, btnDelete);
 
         card.getChildren().addAll(lbl, new Separator(), addBox, list);
         tab.setContent(card);

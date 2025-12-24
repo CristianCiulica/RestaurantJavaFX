@@ -40,6 +40,53 @@ public class UserRepository {
         }
     }
 
+    public Optional<User> findByUsername(String username) {
+        EntityManager em = getEntityManager();
+        try {
+            return Optional.of(
+                    em.createQuery("SELECT u FROM User u WHERE u.username = :user", User.class)
+                            .setParameter("user", username)
+                            .getSingleResult()
+            );
+        } catch (NoResultException e) {
+            return Optional.empty();
+        } finally {
+            em.close();
+        }
+    }
+
+    /**
+     * Sterge userul cu username-ul dat (daca exista). Returneaza true daca s-a sters.
+     */
+    public boolean deleteByUsername(String username) {
+        EntityManager em = getEntityManager();
+        try {
+            em.getTransaction().begin();
+
+            var userOpt = findByUsername(username);
+            if (userOpt.isEmpty()) {
+                em.getTransaction().rollback();
+                return false;
+            }
+
+            // trebuie re-atasat la EM curent
+            User managed = em.find(User.class, userOpt.get().getId());
+            if (managed == null) {
+                em.getTransaction().rollback();
+                return false;
+            }
+
+            em.remove(managed);
+            em.getTransaction().commit();
+            return true;
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            throw e;
+        } finally {
+            em.close();
+        }
+    }
+
     /**
      * Returneaza toti userii cu rolul cerut (ex: STAFF) sortati alfabetic dupa nume.
      */
