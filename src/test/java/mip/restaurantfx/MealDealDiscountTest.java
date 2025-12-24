@@ -29,8 +29,8 @@ class MealDealDiscountTest {
 
         // pizzaCount=2, deserts=2 => 2 discounts: cheapest 30 and next 100 => 7.5 + 25 = 32.5
         assertEquals(1, c.getDiscountLines().size());
-        assertEquals(-32.5, c.getDiscountLines().get(0).getValoare(), 0.0001);
+        DetaliuComanda line = c.getDiscountLines().stream().findFirst().orElseThrow();
+        assertEquals(-32.5, line.getValoare(), 0.0001);
         assertEquals(177.5, c.getTotal(), 0.0001);
     }
 }
-

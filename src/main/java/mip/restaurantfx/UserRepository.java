@@ -2,7 +2,10 @@ package mip.restaurantfx;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.TypedQuery;
+
+import java.util.List;
 import java.util.Optional;
+
 public class UserRepository {
 
     private EntityManager getEntityManager() {
@@ -35,6 +38,25 @@ public class UserRepository {
         } finally {
             em.close();
         }
+    }
+
+    /**
+     * Returneaza toti userii cu rolul cerut (ex: STAFF) sortati alfabetic dupa nume.
+     */
+    public List<User> findByRole(User.Role role) {
+        EntityManager em = getEntityManager();
+        try {
+            return em.createQuery(
+                            "SELECT u FROM User u WHERE u.rol = :rol ORDER BY u.nume", User.class)
+                    .setParameter("rol", role)
+                    .getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
+    public List<User> getAllStaff() {
+        return findByRole(User.Role.STAFF);
     }
 
     public long count() {

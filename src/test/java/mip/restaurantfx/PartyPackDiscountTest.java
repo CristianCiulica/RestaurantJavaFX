@@ -24,8 +24,8 @@ class PartyPackDiscountTest {
 
         // 4 pizzas => 1 free, cheapest unit is 40
         assertEquals(1, c.getDiscountLines().size());
-        assertEquals(-40.0, c.getDiscountLines().get(0).getValoare(), 0.0001);
+        DetaliuComanda line = c.getDiscountLines().stream().findFirst().orElseThrow();
+        assertEquals(-40.0, line.getValoare(), 0.0001);
         assertEquals(140.0, c.getTotal(), 0.0001);
     }
 }
-

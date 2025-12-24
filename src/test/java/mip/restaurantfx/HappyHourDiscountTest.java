@@ -26,7 +26,8 @@ class HappyHourDiscountTest {
 
         assertEquals(1, c.getDiscountLines().size());
         // sort desc => [20, 10], discount applies to 2nd => 10 * 0.5 = 5
-        assertEquals(-5.0, c.getDiscountLines().get(0).getValoare(), 0.0001);
+        DetaliuComanda line = c.getDiscountLines().stream().findFirst().orElseThrow();
+        assertEquals(-5.0, line.getValoare(), 0.0001);
         assertEquals(25.0, c.getTotal(), 0.0001);
     }
 
@@ -43,4 +44,3 @@ class HappyHourDiscountTest {
         assertTrue(c.getDiscountLines().isEmpty());
     }
 }
-

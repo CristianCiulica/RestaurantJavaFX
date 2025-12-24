@@ -70,10 +70,13 @@ public class AdminView {
         Label lbl = new Label("Ospătari (Staff)");
 
         ListView<String> list = new ListView<>();
-        // Simplu: momentan avem doar 1 staff in seeder; extensibil ulterior
-        list.setItems(FXCollections.observableArrayList(
-                "Tip: pentru tema, e suficient să demonstrezi CRUD minim în iterația următoare."
+
+        Runnable loadStaff = () -> list.setItems(FXCollections.observableArrayList(
+                userRepo.getAllStaff().stream()
+                        .map(u -> u.getNume() + " (" + u.getUsername() + ")")
+                        .toList()
         ));
+        loadStaff.run();
 
         // Adaugare rapida (demo)
         HBox addBox = new HBox(8);
@@ -91,9 +94,16 @@ public class AdminView {
                 new Alert(Alert.AlertType.WARNING, "Completează toate câmpurile.").show();
                 return;
             }
-            userRepo.save(new User(txtUser.getText().trim(), txtPass.getText(), txtNume.getText().trim(), User.Role.STAFF));
-            new Alert(Alert.AlertType.INFORMATION, "Ospătar adăugat.").show();
-            txtUser.clear(); txtPass.clear(); txtNume.clear();
+            try {
+                userRepo.save(new User(txtUser.getText().trim(), txtPass.getText(), txtNume.getText().trim(), User.Role.STAFF));
+                new Alert(Alert.AlertType.INFORMATION, "Ospătar adăugat.").show();
+                txtUser.clear(); txtPass.clear(); txtNume.clear();
+                loadStaff.run();
+            } catch (Exception ex) {
+                new Alert(Alert.AlertType.ERROR, "Nu s-a putut salva userul (posibil username deja existent).",
+                        ButtonType.OK).show();
+                ex.printStackTrace();
+            }
         });
 
         addBox.getChildren().addAll(txtUser, txtPass, txtNume, btnAdd);
