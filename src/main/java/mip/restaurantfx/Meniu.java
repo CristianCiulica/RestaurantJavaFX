@@ -33,7 +33,7 @@ public class Meniu {
             List<Produs> produse = new ArrayList<>(categorie.getValue());
             produse.sort(Comparator.comparing(Produs::getNume, String.CASE_INSENSITIVE_ORDER));
             for (Produs p : produse) {
-                p.afisareProdus();
+                System.out.println(p);
             }
         }
         System.out.println("--------------------------------------------");

@@ -5,12 +5,16 @@
 
     <persistence-unit name="restaurantPU">
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
-
         <class>mip.restaurantfx.Produs</class>
         <class>mip.restaurantfx.Mancare</class>
         <class>mip.restaurantfx.Bautura</class>
         <class>mip.restaurantfx.Pizza</class>
 
+        <class>mip.restaurantfx.User</class>
+        <class>mip.restaurantfx.Masa</class>
+        <class>mip.restaurantfx.Comanda</class>
+        <class>mip.restaurantfx.ComandaItem</class>
+        <class>mip.restaurantfx.DetaliuComanda</class>
         <properties>
             <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>
             <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/restaurant_db"/>

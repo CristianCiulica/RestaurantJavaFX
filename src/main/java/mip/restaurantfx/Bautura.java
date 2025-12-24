@@ -18,13 +18,11 @@ public class Bautura extends Produs {
     }
 
     public int getVolum() { return volum; }
-    public void setVolum(int volum) { this.volum = volum; }
 
     public boolean isAlcoolica() { return alcoolica; }
-    public void setAlcoolica(boolean alcoolica) { this.alcoolica = alcoolica; }
 
     @Override
-    public void afisareProdus() {
-        System.out.println("> " + getNume() + " - " + getPret() + " RON - Volum: " + volum + "ml" + (alcoolica ? " (alcoolică)" : ""));
+    public String getDetalii() {
+        return "Volum: " + volum + "ml" + (alcoolica ? " (Alcool)" : "");
     }
 }

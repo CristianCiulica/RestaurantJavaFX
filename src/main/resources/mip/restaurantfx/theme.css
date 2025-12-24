@@ -1,0 +1,210 @@
+/* Modern minimalist theme (clean, light, subtle accent)
+   Keep class names: card, topbar, primary, outline, danger, table-tile, table-free, table-occupied.
+*/
+
+.root {
+    -fx-font-family: "Segoe UI";
+    -fx-background-color: #f6f7fb;
+}
+
+/* Typography */
+.label {
+    -fx-text-fill: #1b1f2a;
+}
+
+.label.muted, .subtitle {
+    -fx-text-fill: #667085;
+}
+
+.title {
+    -fx-font-size: 22px;
+    -fx-font-weight: 800;
+    -fx-text-fill: #101828;
+}
+
+/* Containers */
+.card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-color: #eaecf5;
+    -fx-padding: 16;
+    -fx-effect: dropshadow(gaussian, rgba(16,24,40,0.06), 14, 0.22, 0, 6);
+}
+
+.topbar {
+    -fx-background-color: rgba(255,255,255,0.85);
+    -fx-border-color: #eaecf5;
+    -fx-border-width: 0 0 1 0;
+    -fx-padding: 12 14;
+}
+
+/* Inputs */
+.text-field, .password-field {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #101828;
+    -fx-prompt-text-fill: #98a2b3;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: #eaecf5;
+    -fx-padding: 10 12;
+}
+
+.text-field:focused, .password-field:focused {
+    -fx-border-color: rgba(105, 65, 198, 0.55);
+    -fx-effect: dropshadow(gaussian, rgba(105,65,198,0.18), 10, 0.18, 0, 0);
+}
+
+.check-box {
+    -fx-text-fill: #101828;
+}
+
+/* Buttons */
+.button {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #101828;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: #eaecf5;
+    -fx-padding: 10 14;
+}
+
+.button:hover {
+    -fx-background-color: #f2f4ff;
+}
+
+.button:pressed {
+    -fx-background-color: #e9ecff;
+}
+
+.button.primary {
+    -fx-background-color: #6941c6;
+    -fx-text-fill: white;
+    -fx-font-weight: 700;
+    -fx-border-color: transparent;
+}
+
+.button.primary:hover {
+    -fx-background-color: #5d36b4;
+}
+
+.button.outline {
+    -fx-background-color: transparent;
+    -fx-border-color: #d0d5dd;
+}
+
+.button.danger {
+    -fx-background-color: #d92d20;
+    -fx-text-fill: white;
+    -fx-font-weight: 700;
+    -fx-border-color: transparent;
+}
+
+.button.danger:hover {
+    -fx-background-color: #b42318;
+}
+
+.button.pos {
+    -fx-padding: 10 16;
+    -fx-font-weight: 700;
+}
+
+.separator {
+    -fx-opacity: 0.25;
+}
+
+/* Accent bar (requested: red bar) */
+.accent-bar {
+    -fx-background-color: #d92d20;
+    -fx-min-height: 4px;
+    -fx-pref-height: 4px;
+}
+
+/* Table */
+.table-view {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: #eaecf5;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #f9fafb;
+    -fx-background-radius: 12 12 0 0;
+}
+
+.table-view .column-header, .table-view .filler {
+    -fx-background-color: transparent;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: #475467;
+    -fx-font-weight: 700;
+}
+
+.table-row-cell {
+    -fx-background-color: #ffffff;
+    -fx-text-fill: #101828;
+}
+
+.table-row-cell:odd {
+    -fx-background-color: #fcfcfd;
+}
+
+.table-row-cell:selected {
+    -fx-background-color: rgba(105, 65, 198, 0.12);
+}
+
+/* ListView */
+.list-view {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: #eaecf5;
+}
+
+.list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: #101828;
+    -fx-padding: 10 12;
+}
+
+.list-cell:selected {
+    -fx-background-color: rgba(105, 65, 198, 0.12);
+}
+
+/* Table tiles (Masa) */
+.table-tile {
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+    -fx-font-weight: 800;
+    -fx-font-size: 14px;
+    -fx-padding: 12;
+}
+
+.table-free {
+    -fx-background-color: #ecfdf3;
+    -fx-border-color: rgba(3, 152, 85, 0.35);
+}
+
+.table-occupied {
+    -fx-background-color: #fef3f2;
+    -fx-border-color: rgba(217, 45, 32, 0.35);
+}
+
+/* Login background
+   Background image is set in code (RestaurantGUI) to avoid path issues.
+   You can still keep colors here.
+*/
+.login-root {
+    -fx-background-color: #0b0f1a;
+}
+
+/* Optional: make the login card slightly translucent on top of photo */
+.card.login-card {
+    -fx-background-color: rgba(255, 255, 255, 0.92);
+    -fx-padding: 14;
+}
+
+
+

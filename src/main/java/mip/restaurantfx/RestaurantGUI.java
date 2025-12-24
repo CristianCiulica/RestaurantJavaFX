@@ -1,283 +1,148 @@
 package mip.restaurantfx;
+
 import javafx.application.Application;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.VBox;
-import javafx.stage.FileChooser;
+import javafx.scene.layout.*;
 import javafx.stage.Stage;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.io.File;
-import java.util.List;
+import java.util.Optional;
 
 public class RestaurantGUI extends Application {
 
-    private ProdusRepository repository;
-    private ListView<Produs> listView;
+    private static final String LOGIN_BG_RESOURCE = "/login-bg.jpg";
+    private static final boolean USE_LOCAL_BG = false;
+    private static final String LOGIN_BG_LOCAL_FILE = "D:/path/to/your/image.jpg";
 
-    private TextField numeField;
-    private TextField pretField;
-    private Label detaliiLabel;
-    private TextField detaliiField;
+    private final UserRepository userRepo = new UserRepository();
 
     @Override
-    public void start(Stage primaryStage) {
-        try {
-            repository = new ProdusRepository();
-            initializeazaProduse();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public void start(Stage stage) {
+        DataSeeder.seed();
 
-        primaryStage.setTitle("Restaurant La Andrei");
+        stage.setTitle("Restaurant La Andrei - Login");
+        Label lblTitlu = new Label("Restaurantul La Andrei");
+        lblTitlu.getStyleClass().add("title");
+        lblTitlu.setAlignment(Pos.CENTER);
+        lblTitlu.setMaxWidth(Double.MAX_VALUE);
 
-        MenuBar menuBar = new MenuBar();
-        Menu fileMenu = new Menu("File");
+        Label lblSub = new Label("Login pentru Staff/Admin sau intra ca Guest pentru a comanda");
+        lblSub.getStyleClass().add("subtitle");
+        lblSub.setWrapText(true);
 
-        MenuItem exportItem = new MenuItem("Export JSON");
-        exportItem.setOnAction(e -> exportaInJSON(primaryStage));
+        TextField txtUser = new TextField();
+        txtUser.setPromptText("Utilizator");
 
-        MenuItem importItem = new MenuItem("Import JSON");
-        importItem.setOnAction(e -> importaDinJSON(primaryStage));
+        PasswordField txtPass = new PasswordField();
+        txtPass.setPromptText("Parola");
 
-        fileMenu.getItems().addAll(exportItem, importItem);
-        menuBar.getMenus().add(fileMenu);
+        Button btnLogin = new Button("Autentificare");
+        btnLogin.getStyleClass().add("primary");
 
-        listView = new ListView<>();
-        listView.setCellFactory(param -> new ListCell<Produs>() {
-            @Override
-            protected void updateItem(Produs item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                } else {
-                    String details = "";
-                    String type = "";
+        Button btnGuest = new Button("Continuă ca Guest");
+        btnGuest.getStyleClass().add("outline");
 
-                    if (item instanceof Pizza) {
-                        Pizza pizza = (Pizza) item;
-                        type = "[Pizza]";
-                        int toppingCount = (pizza.getToppinguri() != null) ? pizza.getToppinguri().size() : 0;
-                        String blatText = (pizza.getBlat() != null) ? pizza.getBlat() : "N/A";
-                        String sosText = (pizza.getSos() != null) ? pizza.getSos() : "N/A";
-                        details = String.format(" - %s, %s, %d toppinguri", blatText, sosText, toppingCount);
-                    } else if (item instanceof Mancare) {
-                        Mancare mancare = (Mancare) item;
-                        type = mancare.isVegetarian() ? "[Mancare Vegetariana]" : "[Mancare]";
-                        details = String.format(" - %dg", mancare.getGramaj());
-                    } else if (item instanceof Bautura) {
-                        Bautura bautura = (Bautura) item;
-                        type = bautura.isAlcoolica() ? "[Bautura Alcoolica]" : "[Bautura]";
-                        details = String.format(" - %dml", bautura.getVolum());
-                    }
+        VBox buttonsBox = new VBox(8, btnLogin, btnGuest);
+        buttonsBox.setAlignment(Pos.CENTER);
+        buttonsBox.setFillWidth(true);
 
-                    setText(String.format("%s %s - %.2f RON%s",
-                        type, item.getNume(), item.getPret(), details));
-                }
+        Region buttonsSpacer = new Region();
+        buttonsSpacer.setMinHeight(12);
+
+        Label lblMesaj = new Label();
+        lblMesaj.getStyleClass().add("muted");
+        lblMesaj.setWrapText(true);
+
+        VBox card = new VBox(8,
+                lblTitlu,
+                lblSub,
+                new Separator(),
+                new Label("User"), txtUser,
+                new Label("Parolă"), txtPass,
+                buttonsSpacer,
+                buttonsBox,
+                lblMesaj
+        );
+        card.getStyleClass().addAll("card", "login-card");
+        card.setPrefWidth(320);
+        card.setMaxWidth(320);
+        card.setMaxHeight(420);
+        card.setMinHeight(Region.USE_PREF_SIZE);
+        card.setFillWidth(true);
+        StackPane root = new StackPane();
+        root.getStyleClass().add("login-root");
+
+        Region overlay = new Region();
+        overlay.setStyle("-fx-background-color: rgba(11, 15, 26, 0.35);");
+        overlay.prefWidthProperty().bind(root.widthProperty());
+        overlay.prefHeightProperty().bind(root.heightProperty());
+
+        root.getChildren().addAll(overlay, card);
+        root.setPadding(new Insets(18));
+        if (USE_LOCAL_BG) {
+            File f = new File(LOGIN_BG_LOCAL_FILE);
+            if (f.exists()) {
+                root.setStyle("-fx-background-image: url('" + f.toURI() + "');" +
+                        "-fx-background-size: cover;" +
+                        "-fx-background-position: center center;" +
+                        "-fx-background-repeat: no-repeat;");
             }
-        });
-
-        refreshList();
-
-        listView.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal != null) {
-                populeazaFormular(newVal);
-            }
-        });
-
-        GridPane formGrid = new GridPane();
-        formGrid.setPadding(new Insets(10));
-        formGrid.setHgap(10);
-        formGrid.setVgap(10);
-
-        formGrid.add(new Label("Nume Produs:"), 0, 0);
-        numeField = new TextField();
-        formGrid.add(numeField, 0, 1);
-
-        formGrid.add(new Label("Preț (RON):"), 0, 2);
-        pretField = new TextField();
-        formGrid.add(pretField, 0, 3);
-
-        detaliiLabel = new Label("Detalii Extra:");
-        formGrid.add(detaliiLabel, 0, 4);
-        detaliiField = new TextField();
-        formGrid.add(detaliiField, 0, 5);
-
-        BorderPane root = new BorderPane();
-        root.setTop(menuBar);
-
-        SplitPane splitPane = new SplitPane();
-        splitPane.getItems().addAll(new VBox(listView), formGrid);
-        splitPane.setDividerPositions(0.3);
-
-        root.setCenter(splitPane);
-
-        Scene scene = new Scene(root, 800, 500);
-        primaryStage.setScene(scene);
-        primaryStage.show();
-    }
-
-    private void refreshList() {
-        listView.getItems().clear();
-        if (repository != null) {
-            listView.getItems().addAll(repository.getAll());
-        }
-    }
-
-    private void populeazaFormular(Produs p) {
-        numeField.setText(p.getNume());
-        pretField.setText(String.format("%.2f", p.getPret()));
-
-        if (p instanceof Pizza) {
-            Pizza pizza = (Pizza) p;
-            detaliiLabel.setText("Pizza Info:");
-            String blatText = (pizza.getBlat() != null) ? pizza.getBlat() : "N/A";
-            String sosText = (pizza.getSos() != null) ? pizza.getSos() : "N/A";
-            String toppinguriText = (pizza.getToppinguri() != null) ? String.join(", ", pizza.getToppinguri()) : "N/A";
-            detaliiField.setText(String.format("Blat: %s, Sos: %s, Toppinguri: %s", blatText, sosText, toppinguriText));
-        } else if (p instanceof Mancare) {
-            detaliiLabel.setText("Gramaj (g):");
-            detaliiField.setText(String.valueOf(((Mancare) p).getGramaj()));
-        } else if (p instanceof Bautura) {
-            detaliiLabel.setText("Volum (ml):");
-            detaliiField.setText(String.valueOf(((Bautura) p).getVolum()));
         } else {
-            detaliiLabel.setText("Detalii:");
-            detaliiField.setText("");
-        }
-    }
-
-    private void exportaInJSON(Stage stage) {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Salvează Meniul");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON Files", "*.json"));
-        File file = fileChooser.showSaveDialog(stage);
-
-        if (file != null) {
-            try {
-                ObjectMapper mapper = new ObjectMapper();
-                mapper.enable(SerializationFeature.INDENT_OUTPUT);
-                List<Produs> listaProduse = repository.getAll();
-                mapper.writeValue(file, listaProduse);
-
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("Succes");
-                alert.setContentText("Export realizat cu succes!");
-                alert.show();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setContentText("Eroare la export: " + ex.getMessage());
-                alert.show();
+            var bg = RestaurantGUI.class.getResource(LOGIN_BG_RESOURCE);
+            if (bg != null) {
+                root.setStyle("-fx-background-image: url('" + bg.toExternalForm() + "');" +
+                        "-fx-background-size: cover;" +
+                        "-fx-background-position: center center;" +
+                        "-fx-background-repeat: no-repeat;");
             }
         }
-    }
+        btnLogin.setOnAction(e -> {
+            String u = txtUser.getText();
+            String p = txtPass.getText();
 
-    private void importaDinJSON(Stage stage) {
-        FileChooser fileChooser = new FileChooser();
-        fileChooser.setTitle("Deschide Meniu");
-        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("JSON Files", "*.json"));
-        File file = fileChooser.showOpenDialog(stage);
+            Optional<User> userGasit = userRepo.login(u, p);
 
-        if (file != null) {
-            try {
-                ObjectMapper mapper = new ObjectMapper();
-                List<Produs> produseNoi = mapper.readValue(file, new TypeReference<List<Produs>>(){});
-
-                for (Produs p : produseNoi) {
-                    repository.addProdus(p);
-                }
-                refreshList();
-
-                Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                alert.setTitle("Succes");
-                alert.setContentText("Import realizat!");
-                alert.show();
-
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setContentText("Eroare la import: " + ex.getMessage());
-                alert.show();
+            if (userGasit.isPresent()) {
+                deschideInterfata(stage, userGasit.get());
+            } else {
+                lblMesaj.setText("Date incorecte. Verifică user/parola și încearcă din nou.");
             }
+        });
+
+        btnGuest.setOnAction(e -> {
+            User guestUser = new User("guest", "", "Vizitator", User.Role.CLIENT);
+            deschideInterfata(stage, guestUser);
+        });
+
+        Scene scene = new Scene(root, 520, 480);
+        var css = RestaurantGUI.class.getResource("/mip/restaurantfx/theme.css");
+        if (css != null) {
+            scene.getStylesheets().add(css.toExternalForm());
         }
+        stage.setScene(scene);
+        stage.show();
     }
 
-    private void initializeazaProduse() {
-        List<Produs> existing = repository.getAll();
-        System.out.println("Current products in database: " + existing.size());
-
-        if (existing.size() >= 20) {
-            System.out.println("Database already has " + existing.size() + " products. Skipping initialization.");
-            return;
+    private void deschideInterfata(Stage stage, User user) {
+        if (user.getRol() == User.Role.CLIENT) {
+            new ClientView().start(stage, user);
         }
-        if (!existing.isEmpty()) {
-            System.out.println("Found partial initialization (" + existing.size() + " products). Clearing and re-initializing...");
-            repository.stergeToateProdusele();
+        else if (user.getRol() == User.Role.STAFF) {
+            new StaffMeseView().start(stage, user);
         }
-
-        System.out.println("Initializing database with menu products...");
-        int count = 0;
-
-        System.out.println("Adding vegetarian dishes...");
-        repository.salveazaProdus(new Mancare("Pizza Margherita", 45.0, 450, true)); count++;
-        repository.salveazaProdus(new Mancare("Supa Crema Ciuperci", 22.0, 300, true)); count++;
-        repository.salveazaProdus(new Mancare("Risotto cu Hribii de munte", 48.0, 320, true)); count++;
-        repository.salveazaProdus(new Mancare("Salata de Fructe", 18.0, 200, true)); count++;
-        repository.salveazaProdus(new Mancare("Panna Cotta cu fructe de padure", 28.0, 150, true)); count++;
-        System.out.println("  Added " + count + " vegetarian dishes");
-
-        System.out.println("Adding non-vegetarian dishes...");
-        repository.salveazaProdus(new Mancare("Paste Carbonara", 52.5, 400, false)); count++;
-        repository.salveazaProdus(new Mancare("Burger Gourmet Black Angus", 62.0, 380, false)); count++;
-        repository.salveazaProdus(new Mancare("Tiramisu Special", 120.0, 250, false)); count++;
-        repository.salveazaProdus(new Mancare("Cheesecake Vanilie", 32.0, 180, false)); count++;
-        System.out.println("  Added " + (count - 5) + " non-vegetarian dishes");
-
-        System.out.println("Adding non-alcoholic drinks...");
-        repository.salveazaProdus(new Bautura("Limonada", 15.0, 400, false)); count++;
-        repository.salveazaProdus(new Bautura("Apa Plata", 8.0, 500, false)); count++;
-        repository.salveazaProdus(new Bautura("Fresh Portocale", 19.0, 450, false)); count++;
-        repository.salveazaProdus(new Bautura("Ceai Verde cu miere", 14.0, 350, false)); count++;
-        System.out.println("  Added " + (count - 9) + " non-alcoholic drinks");
-
-        System.out.println("Adding alcoholic drinks...");
-        repository.salveazaProdus(new Bautura("Bere", 12.0, 500, true)); count++;
-        repository.salveazaProdus(new Bautura("Vin Rosu", 28.0, 150, true)); count++;
-        repository.salveazaProdus(new Bautura("Aperol Spritz", 35.0, 250, true)); count++;
-        repository.salveazaProdus(new Bautura("Gin Tonic", 38.0, 300, true)); count++;
-        System.out.println("  Added " + (count - 13) + " alcoholic drinks");
-
-        System.out.println("Adding custom pizzas...");
-        Pizza pizzaCustom = new Pizza.PizzaBuilder("Pufos", "Rosii")
-                .withExtraMozzarella()
-                .withCiuperci()
-                .withSalam()
-                .build();
-        repository.salveazaProdus(pizzaCustom); count++;
-        System.out.println("  Added Pizza Custom 1");
-
-        Pizza pizzaVeggie = new Pizza.PizzaBuilder("Subtire", "Busuioc")
-                .withCiuperci()
-                .withExtraMozzarella()
-                .build();
-        repository.salveazaProdus(pizzaVeggie); count++;
-        System.out.println("  Added Pizza Custom 2");
-
-        int finalCount = repository.getAll().size();
-        System.out.println("Database initialization complete! Expected: 20, Added: " + count + ", Final count: " + finalCount);
-
-        if (finalCount < 20) {
-            System.out.println("WARNING: Not all products were saved successfully!");
+        else if (user.getRol() == User.Role.ADMIN) {
+            new AdminView().start(stage, user);
         }
+    }
+    @Override
+    public void stop() {
+        PersistenceManager.getInstance().close();
     }
 
     public static void main(String[] args) {
-        launch();
+        launch(args);
     }
 }

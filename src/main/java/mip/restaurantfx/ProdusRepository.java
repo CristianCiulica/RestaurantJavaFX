@@ -1,19 +1,15 @@
 package mip.restaurantfx;
 
 import jakarta.persistence.EntityManager;
-import jakarta.persistence.EntityManagerFactory;
-import jakarta.persistence.Persistence;
 import java.util.List;
 
 public class ProdusRepository {
-    private EntityManagerFactory entityManagerFactory;
-
-    public ProdusRepository() {
-        entityManagerFactory = Persistence.createEntityManagerFactory("restaurantPU");
+    private EntityManager getEntityManager() {
+        return PersistenceManager.getInstance().getEntityManagerFactory().createEntityManager();
     }
 
     public List<Produs> getAll() {
-        EntityManager em = entityManagerFactory.createEntityManager();
+        EntityManager em = getEntityManager();
         try {
             return em.createQuery("SELECT p FROM Produs p", Produs.class).getResultList();
         } finally {
@@ -22,7 +18,7 @@ public class ProdusRepository {
     }
 
     public void salveazaProdus(Produs p) {
-        EntityManager em = entityManagerFactory.createEntityManager();
+        EntityManager em = getEntityManager();
         try {
             em.getTransaction().begin();
             if (p.getId() == null) {
@@ -31,45 +27,34 @@ public class ProdusRepository {
                 em.merge(p);
             }
             em.getTransaction().commit();
-            System.out.println("Successfully saved: " + p.getNume() + " (ID: " + p.getId() + ")");
         } catch (Exception ex) {
             if (em.getTransaction().isActive()) {
                 em.getTransaction().rollback();
             }
-            System.out.println("ERROR saving product: " + p.getNume() + " - " + ex.getMessage());
             ex.printStackTrace();
         } finally {
             em.close();
         }
     }
-
-    public void stergeToateProdusele() {
-        EntityManager em = entityManagerFactory.createEntityManager();
+    public void resetDatabase() {
+        EntityManager em = getEntityManager();
         try {
             em.getTransaction().begin();
             em.createNativeQuery("DELETE FROM pizza_toppinguri").executeUpdate();
-            em.createQuery("DELETE FROM Produs").executeUpdate();
+            em.createNativeQuery("DELETE FROM produs").executeUpdate();
+            em.createNativeQuery("ALTER SEQUENCE produs_id_seq RESTART WITH 1").executeUpdate();
 
             em.getTransaction().commit();
-            System.out.println("All products deleted successfully.");
+            System.out.println("Baza de date a fost resetata complet!");
         } catch (Exception ex) {
             if (em.getTransaction().isActive()) {
                 em.getTransaction().rollback();
             }
-            System.out.println("Error deleting products: " + ex.getMessage());
             ex.printStackTrace();
         } finally {
             em.close();
         }
     }
 
-    public void addProdus(Produs p) {
-        salveazaProdus(p);
-    }
 
-    public void inchide() {
-        if (entityManagerFactory != null && entityManagerFactory.isOpen()) {
-            entityManagerFactory.close();
-        }
-    }
 }

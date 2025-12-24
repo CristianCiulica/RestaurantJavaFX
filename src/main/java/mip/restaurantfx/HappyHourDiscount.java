@@ -1,34 +1,41 @@
 package mip.restaurantfx;
-class HappyHourDiscount implements DiscountRule {
-    private static final double discountBauturiAlcoolice = 0.20;
-    private static final int startHour = 17;
-    private static final int endHour = 19;
-    private int oraCurenta;
 
-    public HappyHourDiscount(int oraCurenta) {
-        this.oraCurenta = oraCurenta;
-    }
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+
+public class HappyHourDiscount implements DiscountRule {
+
     @Override
     public void aplicaDiscount(Comanda comanda) {
-        if (oraCurenta >= startHour && oraCurenta < endHour) {
-            int produseReduse = 0;
-            for (Produs produsCurent : comanda.getProduseComandate().keySet()) {
-                if (produsCurent instanceof Bautura) {
-                    Bautura bauturaCurenta = (Bautura) produsCurent;
-                    if (bauturaCurenta.isAlcoolica()) {
-                        double pretInitial = bauturaCurenta.getPret();
-                        double pretCuDiscount = pretInitial * (1 - discountBauturiAlcoolice);
-                        bauturaCurenta.setPret(pretCuDiscount);
-                        produseReduse++;
-                    }
+        if (comanda == null || comanda.getItems() == null || comanda.getItems().isEmpty()) {
+            return;
+        }
+
+        List<Double> bauturiPretUnit = new ArrayList<>();
+        for (ComandaItem item : comanda.getItems()) {
+            if (item.getProdus() instanceof Bautura) {
+                for (int i = 0; i < item.getCantitate(); i++) {
+                    bauturiPretUnit.add(item.getPretUnitar());
                 }
             }
-            System.out.println("Happy Hour activ. (17:00 - 19:00)");
-            System.out.printf("Discount 20%% aplicat pentru %d bauturi alcoolice.%n", produseReduse);
-        } else {
-            System.out.println("Nu este in intervalul de Happy Hour (17:00 - 19:00).");
-            System.out.println("Nu s-a aplicat niciun discount.");
         }
-    }
 
+        if (bauturiPretUnit.size() < 2) {
+            return;
+        }
+
+        bauturiPretUnit.sort(Comparator.reverseOrder());
+
+        double discountTotal = 0.0;
+        for (int i = 1; i < bauturiPretUnit.size(); i += 2) {
+            discountTotal += bauturiPretUnit.get(i) * 0.5;
+        }
+
+        if (discountTotal <= 0.0) {
+            return;
+        }
+
+        comanda.addDiscountLine(new DetaliuComanda("Happy Hour (a 2-a bautura -50%)", -discountTotal));
+    }
 }

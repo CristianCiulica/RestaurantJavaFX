@@ -1,4 +1,5 @@
 package mip.restaurantfx;
-interface DiscountRule {
+
+public interface DiscountRule {
     void aplicaDiscount(Comanda comanda);
 }
