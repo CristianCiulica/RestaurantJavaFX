@@ -18,10 +18,11 @@ public class Bautura extends Produs {
     }
 
     public int getVolum() { return volum; }
+
     public boolean isAlcoolica() { return alcoolica; }
 
     @Override
     public String getDetalii() {
-        return volum + "ml" + (alcoolica ? " (Alcool)" : "");
+        return "Volum: " + volum + "ml" + (alcoolica ? " (Alcool)" : "");
     }
 }

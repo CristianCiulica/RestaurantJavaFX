@@ -15,7 +15,6 @@ public class Pizza extends Mancare {
 
     public Pizza() {}
 
-
     private Pizza(Builder builder) {
         super("Pizza Custom", builder.pret, 500, false);
         this.blat = builder.blat;
@@ -24,18 +23,20 @@ public class Pizza extends Mancare {
     }
 
     public List<String> getToppinguri() { return toppinguri; }
+
     public String getBlat() { return blat; }
+
     public String getSos() { return sos; }
 
     @Override
     public String getDetalii() {
-        return "Blat: " + blat + ", Sos: " + sos + ", Tops: " + toppinguri;
+        return "Blat: " + blat + ", Sos: " + sos + ", Toppinguri: " + toppinguri;
     }
 
     public static class Builder {
-        private String blat;
-        private String sos;
-        private List<String> toppinguri = new ArrayList<>();
+        private final String blat;
+        private final String sos;
+        private final List<String> toppinguri = new ArrayList<>();
         private double pret = 25.0;
 
         public Builder(String blat, String sos) {
