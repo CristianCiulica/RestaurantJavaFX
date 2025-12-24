@@ -7,9 +7,15 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.util.Optional;
 
 public class RestaurantGUI extends Application {
+
+    private static final String LOGIN_BG_RESOURCE = "/login-bg.jpg";
+    // Dacă vrei să folosești un fișier local (nu recomand pentru proiect/pachet), pune aici calea completă și setează USE_LOCAL_BG=true.
+    private static final boolean USE_LOCAL_BG = false;
+    private static final String LOGIN_BG_LOCAL_FILE = "D:/path/to/your/image.jpg";
 
     private final UserRepository userRepo = new UserRepository();
 
@@ -25,6 +31,7 @@ public class RestaurantGUI extends Application {
         lblTitlu.getStyleClass().add("title");
         Label lblSub = new Label("Login pentru Staff/Admin sau intră ca Guest");
         lblSub.getStyleClass().add("subtitle");
+        lblSub.setWrapText(true);
 
         TextField txtUser = new TextField();
         txtUser.setPromptText("Utilizator");
@@ -40,8 +47,9 @@ public class RestaurantGUI extends Application {
 
         Label lblMesaj = new Label();
         lblMesaj.getStyleClass().add("muted");
+        lblMesaj.setWrapText(true);
 
-        VBox card = new VBox(12,
+        VBox card = new VBox(8,
                 lblTitlu,
                 lblSub,
                 new Separator(),
@@ -51,11 +59,43 @@ public class RestaurantGUI extends Application {
                 btnGuest,
                 lblMesaj
         );
-        card.getStyleClass().add("card");
-        card.setMaxWidth(360);
+        card.getStyleClass().addAll("card", "login-card");
+        card.setPrefWidth(320);
+        card.setMaxWidth(320);
+        card.setMaxHeight(420);
+        card.setMinHeight(Region.USE_PREF_SIZE);
+        card.setFillWidth(true);
 
-        StackPane root = new StackPane(card);
-        root.setPadding(new Insets(24));
+        // Centrare + overlay pentru fundal
+        StackPane root = new StackPane();
+        root.getStyleClass().add("login-root");
+
+        Region overlay = new Region();
+        overlay.setStyle("-fx-background-color: rgba(11, 15, 26, 0.35);");
+        overlay.prefWidthProperty().bind(root.widthProperty());
+        overlay.prefHeightProperty().bind(root.heightProperty());
+
+        root.getChildren().addAll(overlay, card);
+        root.setPadding(new Insets(18));
+
+        // Background image: resource (recommended) or local file
+        if (USE_LOCAL_BG) {
+            File f = new File(LOGIN_BG_LOCAL_FILE);
+            if (f.exists()) {
+                root.setStyle("-fx-background-image: url('" + f.toURI() + "');" +
+                        "-fx-background-size: cover;" +
+                        "-fx-background-position: center center;" +
+                        "-fx-background-repeat: no-repeat;");
+            }
+        } else {
+            var bg = RestaurantGUI.class.getResource(LOGIN_BG_RESOURCE);
+            if (bg != null) {
+                root.setStyle("-fx-background-image: url('" + bg.toExternalForm() + "');" +
+                        "-fx-background-size: cover;" +
+                        "-fx-background-position: center center;" +
+                        "-fx-background-repeat: no-repeat;");
+            }
+        }
 
         // Actiuni Butoane
 

@@ -191,3 +191,17 @@
     -fx-background-color: #fef3f2;
     -fx-border-color: rgba(217, 45, 32, 0.35);
 }
+
+/* Login background
+   Background image is set in code (RestaurantGUI) to avoid path issues.
+   You can still keep colors here.
+*/
+.login-root {
+    -fx-background-color: #0b0f1a;
+}
+
+/* Optional: make the login card slightly translucent on top of photo */
+.card.login-card {
+    -fx-background-color: rgba(255, 255, 255, 0.92);
+    -fx-padding: 14;
+}
