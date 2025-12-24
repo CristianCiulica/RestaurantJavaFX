@@ -15,6 +15,12 @@ public abstract class Produs {
     private double pret;
     private String categorie;
 
+    /**
+     * Path către imaginea produsului (de preferat în resources), ex: "/mip/restaurantfx/images/pizza_margherita.jpg".
+     * Poate fi null/blank -> se folosește o imagine default.
+     */
+    private String imagePath;
+
     public Produs() {}
 
     public Produs(String nume, double pret) {
@@ -22,9 +28,14 @@ public abstract class Produs {
     }
 
     public Produs(String nume, double pret, String categorie) {
+        this(nume, pret, categorie, null);
+    }
+
+    public Produs(String nume, double pret, String categorie, String imagePath) {
         this.nume = nume;
         this.pret = pret;
         this.categorie = categorie;
+        this.imagePath = imagePath;
     }
 
     public Long getId() { return id; }
@@ -42,6 +53,10 @@ public abstract class Produs {
     public String getCategorie() { return categorie; }
 
     public void setCategorie(String categorie) { this.categorie = categorie; }
+
+    public String getImagePath() { return imagePath; }
+
+    public void setImagePath(String imagePath) { this.imagePath = imagePath; }
 
     public abstract String getDetalii();
 
