@@ -28,7 +28,7 @@ public class ClientView {
 
     // Filtre
     private TextField txtSearch = new TextField();
-    private CheckBox chkVegetarian = new CheckBox("Doar Vegetarian");
+    private CheckBox chkVegetarian = new CheckBox("Vegan / Vegetarian");
     private TextField txtPretMax = new TextField();
 
     private static final String IMAGE_BASE_DIR = "/mip/restaurantfx/images/";
@@ -68,6 +68,8 @@ public class ClientView {
         txtPretMax.setPrefWidth(90);
         Button btnFiltreaza = new Button("Aplică filtre");
         btnFiltreaza.getStyleClass().add("primary");
+
+        chkVegetarian.getStyleClass().add("toggle");
 
         topPanel.getChildren().addAll(btnLogout, txtSearch, chkVegetarian, txtPretMax, btnFiltreaza);
         root.setTop(topPanel);
