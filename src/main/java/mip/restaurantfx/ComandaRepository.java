@@ -86,4 +86,26 @@ public class ComandaRepository {
             em.close();
         }
     }
+
+    /**
+     * Șterge complet istoricul (toate comenzile) din baza de date.
+     * IMPORTANT: Comanda are cascade + orphanRemoval către items/discountLines, deci se curăță și liniile aferente.
+     */
+    public void deleteAll() {
+        EntityManager em = getEntityManager();
+        try {
+            em.getTransaction().begin();
+            // remove per entity ca să se aplice cascade/orphanRemoval
+            List<Comanda> all = em.createQuery("SELECT c FROM Comanda c", Comanda.class).getResultList();
+            for (Comanda c : all) {
+                em.remove(c);
+            }
+            em.getTransaction().commit();
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            throw e;
+        } finally {
+            em.close();
+        }
+    }
 }

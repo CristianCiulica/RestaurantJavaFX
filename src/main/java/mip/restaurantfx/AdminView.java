@@ -6,12 +6,15 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import mip.restaurantfx.service.AdminService;
 
 public class AdminView {
 
-    private final UserRepository userRepo = new UserRepository();
-    private final ProdusRepository produsRepo = new ProdusRepository();
-    private final ComandaRepository comandaRepo = new ComandaRepository();
+    private final AdminService adminService;
+
+    public AdminView(AdminService adminService) {
+        this.adminService = adminService;
+    }
 
     public void start(Stage stage, User admin) {
         BorderPane root = new BorderPane();
@@ -66,7 +69,7 @@ public class AdminView {
         ListView<String> list = new ListView<>();
 
         Runnable loadStaff = () -> list.setItems(FXCollections.observableArrayList(
-                userRepo.getAllStaff().stream()
+                adminService.getAllStaff().stream()
                         .map(u -> u.getNume() + " (" + u.getUsername() + ")")
                         .toList()
         ));
@@ -92,7 +95,7 @@ public class AdminView {
                 return;
             }
             try {
-                userRepo.save(new User(txtUser.getText().trim(), txtPass.getText(), txtNume.getText().trim(), User.Role.STAFF));
+                adminService.addStaff(txtUser.getText(), txtPass.getText(), txtNume.getText());
                 new Alert(Alert.AlertType.INFORMATION, "Ospătar adăugat.").show();
                 txtUser.clear(); txtPass.clear(); txtNume.clear();
                 loadStaff.run();
@@ -118,24 +121,31 @@ public class AdminView {
             }
             String username = selected.substring(open + 1, close).trim();
 
-            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
-                    "Sigur vrei să ștergi ospătarul: " + selected + " ?",
+            Alert confirm1 = new Alert(Alert.AlertType.CONFIRMATION,
+                    "Sigur vrei să concediezi ospătarul: " + selected + " ?",
                     ButtonType.YES, ButtonType.NO);
-            confirm.setHeaderText(null);
-            var res = confirm.showAndWait();
-            if (res.isEmpty() || res.get() != ButtonType.YES) return;
+            confirm1.setHeaderText("Confirmare");
+            var r1 = confirm1.showAndWait();
+            if (r1.isEmpty() || r1.get() != ButtonType.YES) return;
+
+            Alert confirm2 = new Alert(Alert.AlertType.CONFIRMATION,
+                    "ATENȚIE: Această acțiune va șterge DEFINITIV ospătarul și TOT istoricul lui. \n\nConfirmi încă o dată?",
+                    ButtonType.YES, ButtonType.NO);
+            confirm2.setHeaderText("Ștergere critică");
+            var r2 = confirm2.showAndWait();
+            if (r2.isEmpty() || r2.get() != ButtonType.YES) return;
 
             try {
-                boolean deleted = userRepo.deleteByUsername(username);
+                boolean deleted = adminService.deleteStaffByUsername(username);
                 if (deleted) {
-                    new Alert(Alert.AlertType.INFORMATION, "Ospătar șters.").show();
+                    new Alert(Alert.AlertType.INFORMATION, "Ospătar șters. Istoricul lui a fost șters în cascadă.").show();
                     loadStaff.run();
                 } else {
                     new Alert(Alert.AlertType.WARNING, "Userul nu mai există.").show();
                     loadStaff.run();
                 }
             } catch (Exception ex) {
-                new Alert(Alert.AlertType.ERROR, "Nu s-a putut șterge userul. Verifică dacă are comenzi asociate.").show();
+                new Alert(Alert.AlertType.ERROR, "Nu s-a putut șterge userul.").show();
                 ex.printStackTrace();
             }
         });
@@ -155,24 +165,24 @@ public class AdminView {
 
         Label lbl = new Label("Meniu (produse din DB)");
         ListView<Produs> list = new ListView<>();
-        list.setItems(FXCollections.observableArrayList(produsRepo.getAll()));
+        list.setItems(FXCollections.observableArrayList(adminService.getAllProducts()));
 
         HBox actions = new HBox(8);
         Button btnRefresh = new Button("Refresh");
         btnRefresh.getStyleClass().add("outline");
-        btnRefresh.setOnAction(e -> list.setItems(FXCollections.observableArrayList(produsRepo.getAll())));
+        btnRefresh.setOnAction(e -> list.setItems(FXCollections.observableArrayList(adminService.getAllProducts())));
 
         Button btnExport = new Button("Export JSON");
         btnExport.getStyleClass().add("outline");
-        btnExport.setOnAction(e -> new RestaurantFXExportImport().exportaProduse(stage, produsRepo.getAll()));
+        btnExport.setOnAction(e -> new RestaurantFXExportImport().exportaProduse(stage, adminService.getAllProducts()));
 
         Button btnImport = new Button("Import JSON");
         btnImport.getStyleClass().add("primary");
         btnImport.setOnAction(e -> {
             var imported = new RestaurantFXExportImport().importaProduse(stage);
             if (imported != null) {
-                for (Produs p : imported) produsRepo.salveazaProdus(p);
-                list.setItems(FXCollections.observableArrayList(produsRepo.getAll()));
+                for (Produs p : imported) adminService.saveProduct(p);
+                list.setItems(FXCollections.observableArrayList(adminService.getAllProducts()));
             }
         });
 
@@ -238,17 +248,41 @@ public class AdminView {
         Button btnRefresh = new Button("Refresh");
         btnRefresh.getStyleClass().add("outline");
 
-        HBox center = new HBox(12, new VBox(10, btnRefresh, tabel), detCard);
+        Button btnStergeIstoric = new Button("Șterge istoric");
+        btnStergeIstoric.getStyleClass().add("danger");
+
+        HBox actions = new HBox(8, btnRefresh, btnStergeIstoric);
+
+        HBox center = new HBox(12, new VBox(10, actions, tabel), detCard);
 
         card.getChildren().addAll(lbl, new Separator(), center);
         tab.setContent(card);
 
-        Runnable load = () -> tabel.setItems(FXCollections.observableArrayList(comandaRepo.getIstoricGlobal()));
+        Runnable load = () -> tabel.setItems(FXCollections.observableArrayList(adminService.getGlobalHistory()));
         load.run();
 
         btnRefresh.setOnAction(e -> {
             detalii.getItems().clear();
             load.run();
+        });
+
+        btnStergeIstoric.setOnAction(e -> {
+            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
+                    "ATENȚIE: Aceasta va șterge DEFINITIV întreg istoricul de comenzi (toate comenzile) din baza de date.\n\nContinui?",
+                    ButtonType.YES, ButtonType.NO);
+            confirm.setHeaderText("Ștergere istoric global");
+            var res = confirm.showAndWait();
+            if (res.isEmpty() || res.get() != ButtonType.YES) return;
+
+            try {
+                adminService.deleteAllHistory();
+                detalii.getItems().clear();
+                load.run();
+                new Alert(Alert.AlertType.INFORMATION, "Istoricul a fost șters.").show();
+            } catch (Exception ex) {
+                new Alert(Alert.AlertType.ERROR, "Nu s-a putut șterge istoricul.").show();
+                ex.printStackTrace();
+            }
         });
 
         tabel.getSelectionModel().selectedItemProperty().addListener((obs, o, n) -> {

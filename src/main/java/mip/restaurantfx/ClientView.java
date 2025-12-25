@@ -5,21 +5,21 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import mip.restaurantfx.service.ClientMenuService;
+import mip.restaurantfx.service.ProductFilterCriteria;
+import mip.restaurantfx.service.ProductImageService;
 
-import java.text.Normalizer;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 public class ClientView {
 
-    private final ProdusRepository produsRepo = new ProdusRepository();
+    private final ClientMenuService menuService;
+    private final ProductImageService imageService;
+
     private final ListView<Produs> listaProduse = new ListView<>();
 
     // Detalii
@@ -34,9 +34,10 @@ public class ClientView {
     private final TextField txtPretMin = new TextField();
     private final TextField txtPretMax = new TextField();
 
-    private static final String IMAGES_DIR = "/mip/restaurantfx/images/";
-    private static final String[] IMAGE_EXTS = new String[]{".png", ".jpg", ".jpeg"};
-    private static final Pattern NON_ALNUM = Pattern.compile("[^a-z0-9]+");
+    public ClientView(ClientMenuService menuService, ProductImageService imageService) {
+        this.menuService = menuService;
+        this.imageService = imageService;
+    }
 
     public void start(Stage stage, User user) {
         BorderPane root = new BorderPane();
@@ -70,7 +71,7 @@ public class ClientView {
 
         // --- Center/Left: listă produse + detalii text sub listă ---
         listaProduse.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> afiseazaDetalii(newVal));
-        refreshLista(produsRepo.getAll());
+        refreshLista(menuService.getAllProducts());
 
         // Card detalii text (sub listă)
         VBox detaliiText = new VBox(8);
@@ -150,41 +151,21 @@ public class ClientView {
         lblPret.setText(String.format("%.2f RON", p.getPret()));
         lblDetaliiExtra.setText(p.getDetalii());
 
-        imgProdus.setImage(loadImageForProduct(p));
+        imgProdus.setImage(imageService.loadImageForProduct(p));
     }
 
     private void aplicaFiltre() {
-        List<Produs> toate = produsRepo.getAll();
-
-        String cautare = Optional.ofNullable(txtSearch.getText()).orElse("").trim().toLowerCase();
+        String cautare = Optional.ofNullable(txtSearch.getText()).orElse("");
         boolean doarVeg = chkVegetarian.isSelected();
-
         Double min = parseDoubleOpt(txtPretMin.getText()).orElse(null);
         Double max = parseDoubleOpt(txtPretMax.getText()).orElse(null);
-        if (min != null && max != null && min > max) {
-            double tmp = min;
-            min = max;
-            max = tmp;
-        }
-        final Double fMin = min;
-        final Double fMax = max;
 
-        List<Produs> filtrate = toate.stream()
-                .filter(p -> {
-                    if (cautare.isEmpty()) return true;
-                    String nume = p.getNume() == null ? "" : p.getNume().toLowerCase();
-                    return nume.contains(cautare);
-                })
-                .filter(p -> {
-                    if (!doarVeg) return true;
-                    return (p instanceof Mancare) && ((Mancare) p).isVegetarian();
-                })
-                .filter(p -> {
-                    if (fMin != null && p.getPret() < fMin) return false;
-                    if (fMax != null && p.getPret() > fMax) return false;
-                    return true;
-                })
-                .collect(Collectors.toList());
+        List<Produs> filtrate = menuService.filterProducts(new ProductFilterCriteria(
+                cautare,
+                doarVeg,
+                min,
+                max
+        ));
 
         refreshLista(filtrate);
 
@@ -209,30 +190,5 @@ public class ClientView {
 
     private void refreshLista(List<Produs> produse) {
         listaProduse.setItems(FXCollections.observableArrayList(produse));
-    }
-
-    private Image loadImageForProduct(Produs p) {
-        if (p == null || p.getNume() == null || p.getNume().isBlank()) return null;
-
-        String slug = slugify(p.getNume());
-        for (String ext : IMAGE_EXTS) {
-            String path = IMAGES_DIR + slug + ext;
-            var url = ClientView.class.getResource(path);
-            if (url != null) {
-                return new Image(url.toExternalForm(), true);
-            }
-        }
-
-        // fallback: nimic (nu avem placeholder în resources momentan)
-        return null;
-    }
-
-    private static String slugify(String input) {
-        String s = input.trim().toLowerCase(Locale.ROOT);
-        s = Normalizer.normalize(s, Normalizer.Form.NFD);
-        s = s.replaceAll("\\p{M}", "");
-        s = NON_ALNUM.matcher(s).replaceAll("_");
-        s = s.replaceAll("^_+|_+$", "");
-        return s;
     }
 }

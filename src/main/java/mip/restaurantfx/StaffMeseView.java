@@ -6,13 +6,22 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import mip.restaurantfx.service.ServiceFactory;
 
 import java.util.List;
 
 public class StaffMeseView {
-    private final MasaRepository masaRepo = new MasaRepository();
-    private final ComandaRepository comandaRepo = new ComandaRepository();
+    private final ServiceFactory services;
+    private final MasaRepository masaRepo;
+    private final ComandaRepository comandaRepo;
+
     private User ospatarCurent;
+
+    public StaffMeseView(ServiceFactory services) {
+        this.services = services;
+        this.masaRepo = services.mese();
+        this.comandaRepo = services.comenzi();
+    }
 
     public void start(Stage stage, User ospatar) {
         this.ospatarCurent = ospatar;
@@ -33,7 +42,7 @@ public class StaffMeseView {
 
         Button btnIstoric = new Button("Istoricul meu");
         btnIstoric.getStyleClass().addAll("primary", "pos");
-        btnIstoric.setOnAction(e -> new StaffIstoricView().start(stage, ospatarCurent));
+        btnIstoric.setOnAction(e -> new StaffIstoricView(services.comenzi()).start(stage, ospatarCurent));
 
         Button btnLogout = new Button("Logout");
         btnLogout.getStyleClass().addAll("outline", "pos");
@@ -84,6 +93,6 @@ public class StaffMeseView {
     }
 
     private void deschideComanda(Stage stage, Masa masa) {
-        new StaffComandaView().start(stage, ospatarCurent, masa);
+        new StaffComandaView(services.orders(), services.clientMenu()).start(stage, ospatarCurent, masa);
     }
 }

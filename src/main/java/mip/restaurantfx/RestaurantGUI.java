@@ -8,6 +8,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
+import mip.restaurantfx.service.AppContext;
+
 import java.io.File;
 import java.util.Optional;
 
@@ -17,7 +19,8 @@ public class RestaurantGUI extends Application {
     private static final boolean USE_LOCAL_BG = false;
     private static final String LOGIN_BG_LOCAL_FILE = "D:/path/to/your/image.jpg";
 
-    private final UserRepository userRepo = new UserRepository();
+    // in loc sa instantiem repo-uri direct in UI, luam din composition root
+    private final UserRepository userRepo = AppContext.services().users();
 
     @Override
     public void start(Stage stage) {
@@ -29,7 +32,7 @@ public class RestaurantGUI extends Application {
         lblTitlu.setAlignment(Pos.CENTER);
         lblTitlu.setMaxWidth(Double.MAX_VALUE);
 
-        Label lblSub = new Label("Login pentru Staff/Admin sau intra ca Guest pentru a comanda");
+        Label lblSub = new Label("Login pentru Angajati/Admin sau continuă ca și Vizitator");
         lblSub.getStyleClass().add("subtitle");
         lblSub.setWrapText(true);
 
@@ -42,7 +45,7 @@ public class RestaurantGUI extends Application {
         Button btnLogin = new Button("Autentificare");
         btnLogin.getStyleClass().add("primary");
 
-        Button btnGuest = new Button("Continuă ca Guest");
+        Button btnGuest = new Button("Continuă ca Vizitator");
         btnGuest.getStyleClass().add("outline");
 
         VBox buttonsBox = new VBox(8, btnLogin, btnGuest);
@@ -128,13 +131,13 @@ public class RestaurantGUI extends Application {
 
     private void deschideInterfata(Stage stage, User user) {
         if (user.getRol() == User.Role.CLIENT) {
-            new ClientView().start(stage, user);
+            new ClientView(AppContext.services().clientMenu(), AppContext.services().productImages()).start(stage, user);
         }
         else if (user.getRol() == User.Role.STAFF) {
-            new StaffMeseView().start(stage, user);
+            new StaffMeseView(AppContext.services()).start(stage, user);
         }
         else if (user.getRol() == User.Role.ADMIN) {
-            new AdminView().start(stage, user);
+            new AdminView(AppContext.services().admin()).start(stage, user);
         }
     }
     @Override

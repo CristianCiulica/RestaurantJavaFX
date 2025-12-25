@@ -2,6 +2,9 @@ package mip.restaurantfx;
 
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "users")
 public class User {
@@ -18,6 +21,10 @@ public class User {
     private String nume;
     @Enumerated(EnumType.STRING)
     private Role rol;
+
+    @OneToMany(mappedBy = "ospatar", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comanda> comenzi = new ArrayList<>();
+
     public enum Role {
         CLIENT, STAFF, ADMIN
     }
@@ -33,6 +40,8 @@ public class User {
     public String getUsername() { return username; }
     public Role getRol() { return rol; }
     public String getNume() { return nume; }
+
+    public List<Comanda> getComenzi() { return comenzi; }
     @Override
     public String toString() { return nume + " (" + rol + ")"; }
 }

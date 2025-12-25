@@ -6,12 +6,17 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import mip.restaurantfx.service.AppContext;
 
 import java.time.format.DateTimeFormatter;
 
 public class StaffIstoricView {
 
-    private final ComandaRepository comandaRepo = new ComandaRepository();
+    private final ComandaRepository comandaRepo;
+
+    public StaffIstoricView(ComandaRepository comandaRepo) {
+        this.comandaRepo = comandaRepo;
+    }
 
     public void start(Stage stage, User ospatar) {
         BorderPane root = new BorderPane();
@@ -19,7 +24,7 @@ public class StaffIstoricView {
 
         Button btnBack = new Button("Înapoi");
         btnBack.getStyleClass().add("outline");
-        btnBack.setOnAction(e -> new StaffMeseView().start(stage, ospatar));
+        btnBack.setOnAction(e -> new StaffMeseView(AppContext.services()).start(stage, ospatar));
 
         Label title = new Label("Istoricul meu");
         title.getStyleClass().add("title");
