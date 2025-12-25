@@ -6,19 +6,32 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import mip.restaurantfx.service.ServiceFactory;
 
 import java.util.List;
 
 public class StaffMeseView {
-    private final MasaRepository masaRepo = new MasaRepository();
-    private final ComandaRepository comandaRepo = new ComandaRepository();
+    private final ServiceFactory services;
+    private final MasaRepository masaRepo;
+    private final ComandaRepository comandaRepo;
+
     private User ospatarCurent;
+
+    public StaffMeseView(ServiceFactory services) {
+        this.services = services;
+        this.masaRepo = services.mese();
+        this.comandaRepo = services.comenzi();
+    }
 
     public void start(Stage stage, User ospatar) {
         this.ospatarCurent = ospatar;
 
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(16));
+
+        Button btnExit = new Button("X");
+        btnExit.getStyleClass().add("exit");
+        btnExit.setOnAction(e -> ExitUtil.confirmAndExit(stage));
 
         HBox header = new HBox(12);
         header.getStyleClass().add("topbar");
@@ -33,12 +46,13 @@ public class StaffMeseView {
 
         Button btnIstoric = new Button("Istoricul meu");
         btnIstoric.getStyleClass().addAll("primary", "pos");
-        btnIstoric.setOnAction(e -> new StaffIstoricView().start(stage, ospatarCurent));
+        btnIstoric.setOnAction(e -> new StaffIstoricView(services.comenzi()).start(stage, ospatarCurent));
 
         Button btnLogout = new Button("Logout");
         btnLogout.getStyleClass().addAll("outline", "pos");
         btnLogout.setOnAction(e -> {
             try {
+                WindowState.rememberFullScreen(stage.isFullScreen());
                 new RestaurantGUI().start(stage);
             } catch (Exception ex) {
                 new Alert(Alert.AlertType.ERROR, "Eroare la logout: " + ex.getMessage()).show();
@@ -47,7 +61,7 @@ public class StaffMeseView {
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        header.getChildren().addAll(titles, spacer, btnIstoric, btnLogout);
+        header.getChildren().addAll(titles, spacer, btnIstoric, btnLogout, btnExit);
 
         Region accent = new Region();
         accent.getStyleClass().add("accent-bar");
@@ -80,10 +94,14 @@ public class StaffMeseView {
         var css = StaffMeseView.class.getResource("/mip/restaurantfx/theme.css");
         if (css != null) scene.getStylesheets().add(css.toExternalForm());
         stage.setScene(scene);
+
+        StageUtil.keepMaximized(stage);
+
         stage.setTitle("La Andrei • Staff");
+        StageUtil.keepMaximized(stage);
     }
 
     private void deschideComanda(Stage stage, Masa masa) {
-        new StaffComandaView().start(stage, ospatarCurent, masa);
+        new StaffComandaView(services.orders(), services.clientMenu()).start(stage, ospatarCurent, masa);
     }
 }

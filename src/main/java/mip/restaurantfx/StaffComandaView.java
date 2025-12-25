@@ -11,14 +11,14 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
-
-import java.util.Optional;
+import mip.restaurantfx.service.ClientMenuService;
+import mip.restaurantfx.service.OrderService;
+import mip.restaurantfx.StageUtil;
 
 public class StaffComandaView {
 
-    private ProdusRepository produsRepo = new ProdusRepository();
-    private ComandaRepository comandaRepo = new ComandaRepository();
-    private MasaRepository masaRepo = new MasaRepository();
+    private final OrderService orderService;
+    private final ClientMenuService menuService;
 
     private Comanda comandaCurenta;
     private User ospatar;
@@ -28,20 +28,16 @@ public class StaffComandaView {
     private Label lblTotal = new Label("Total: 0.00 RON");
     private Label lblDiscountInfo = new Label("");
 
+    public StaffComandaView(OrderService orderService, ClientMenuService menuService) {
+        this.orderService = orderService;
+        this.menuService = menuService;
+    }
+
     public void start(Stage stage, User ospatar, Masa masaSelectata) {
         this.ospatar = ospatar;
         this.masa = masaSelectata;
 
-        Comanda existenta = comandaRepo.getComandaActiva(masa.getId());
-        if (existenta != null) {
-            this.comandaCurenta = existenta;
-        } else {
-            this.comandaCurenta = new Comanda(masa);
-            if (!masa.isEsteOcupata()) {
-                masa.setEsteOcupata(true);
-                masaRepo.save(masa);
-            }
-        }
+        this.comandaCurenta = orderService.loadOrCreateActiveOrder(masa);
 
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(16));
@@ -50,16 +46,21 @@ public class StaffComandaView {
         lblTitlu.getStyleClass().add("title");
         lblTitlu.setStyle("-fx-font-size: 18px;");
 
+        Button btnExit = new Button("X");
+        btnExit.getStyleClass().add("exit");
+        btnExit.setOnAction(e -> ExitUtil.confirmAndExit(stage));
+
         Button btnBack = new Button("Înapoi la mese");
         btnBack.getStyleClass().add("outline");
-        btnBack.setOnAction(e -> new StaffMeseView().start(stage, ospatar));
+        btnBack.setOnAction(e -> new StaffMeseView(mip.restaurantfx.service.AppContext.services()).start(stage, ospatar));
 
-        HBox top = new HBox(12, btnBack, lblTitlu);
+        HBox top = new HBox(12, btnBack, lblTitlu, new Region(), btnExit);
+        HBox.setHgrow(top.getChildren().get(2), Priority.ALWAYS);
         top.getStyleClass().add("topbar");
         root.setTop(top);
 
         ListView<Produs> listProduse = new ListView<>();
-        listProduse.setItems(FXCollections.observableArrayList(produsRepo.getAll()));
+        listProduse.setItems(FXCollections.observableArrayList(menuService.getAllProducts()));
 
         Button btnAdauga = new Button("Adaugă");
         btnAdauga.getStyleClass().add("primary");
@@ -149,61 +150,63 @@ public class StaffComandaView {
         btnAdauga.setOnAction(e -> {
             Produs p = listProduse.getSelectionModel().getSelectedItem();
             if (p != null) {
-                comandaCurenta.adaugaProdus(p, 1);
-                recalculeazaTotal();
+                orderService.addProduct(comandaCurenta, p, 1);
                 refreshTabel();
+                updateTotal();
             }
         });
 
         btnSalveaza.setOnAction(e -> {
-            salveazaComanda(true);
+            orderService.saveOrder(comandaCurenta, ospatar, masa, true);
             new Alert(Alert.AlertType.INFORMATION, "Comanda salvata!").show();
+            refreshTabel();
+            updateTotal();
         });
 
         btnFinalizeaza.setOnAction(e -> {
-            salveazaComanda(false);
+            orderService.saveOrder(comandaCurenta, ospatar, masa, false);
             new Alert(Alert.AlertType.INFORMATION, "Comanda finalizata! Masa este acum libera.").showAndWait();
-            new StaffMeseView().start(stage, ospatar);
+            new StaffMeseView(mip.restaurantfx.service.AppContext.services()).start(stage, ospatar);
         });
 
         btnPlus.setOnAction(e -> {
             Object row = tabelBon.getSelectionModel().getSelectedItem();
             if (row instanceof ComandaItem ci) {
-                ci.setCantitate(ci.getCantitate() + 1);
-                recalculeazaTotal();
+                orderService.changeQuantity(comandaCurenta, ci, +1);
                 refreshTabel();
+                updateTotal();
             }
         });
 
         btnMinus.setOnAction(e -> {
             Object row = tabelBon.getSelectionModel().getSelectedItem();
             if (row instanceof ComandaItem ci) {
-                int newQty = ci.getCantitate() - 1;
-                if (newQty <= 0) {
-                    comandaCurenta.stergeProdus(ci);
-                } else {
-                    ci.setCantitate(newQty);
-                }
-                recalculeazaTotal();
+                orderService.changeQuantity(comandaCurenta, ci, -1);
                 refreshTabel();
+                updateTotal();
             }
         });
 
         btnStergeLinie.setOnAction(e -> {
             Object row = tabelBon.getSelectionModel().getSelectedItem();
             if (row instanceof ComandaItem ci) {
-                comandaCurenta.stergeProdus(ci);
-                recalculeazaTotal();
+                orderService.removeItem(comandaCurenta, ci);
                 refreshTabel();
+                updateTotal();
             }
         });
 
-        recalculeazaTotal();
+        orderService.recalculateTotal(comandaCurenta);
+        updateTotal();
 
         Scene scene = new Scene(root, 1040, 640);
         scene.getStylesheets().add(StaffComandaView.class.getResource("/mip/restaurantfx/theme.css").toExternalForm());
         stage.setScene(scene);
+
+        StageUtil.keepMaximized(stage);
+
         stage.setTitle("La Andrei • Comandă");
+        StageUtil.keepMaximized(stage);
     }
 
     private void refreshTabel() {
@@ -216,30 +219,11 @@ public class StaffComandaView {
         tabelBon.refresh();
     }
 
-    private void recalculeazaTotal() {
-        comandaCurenta.clearDiscountLines();
-        comandaCurenta.calculeazaTotal();
-
-        new HappyHourDiscount().aplicaDiscount(comandaCurenta);
-        new MealDealDiscount().aplicaDiscount(comandaCurenta);
-        new PartyPackDiscount().aplicaDiscount(comandaCurenta);
-
-        comandaCurenta.calculeazaTotal();
-        lblTotal.setText(String.format("TOTAL DE PLATA: %.2f RON", comandaCurenta.getTotal()));
-    }
-
-    private void salveazaComanda(boolean ramaneOcupata) {
-        recalculeazaTotal();
-
-        comandaCurenta.setOspatar(ospatar);
-
-        masa.setEsteOcupata(ramaneOcupata);
-        masaRepo.save(masa);
-
-        if (!ramaneOcupata) {
-            comandaCurenta.setStatus(Comanda.StatusComanda.PLATITA);
+    private void updateTotal() {
+        if (comandaCurenta == null) {
+            lblTotal.setText("TOTAL DE PLATA: 0.00 RON");
+            return;
         }
-
-        comandaRepo.save(comandaCurenta);
+        lblTotal.setText(String.format("TOTAL DE PLATA: %.2f RON", comandaCurenta.getTotal()));
     }
 }

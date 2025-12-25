@@ -86,4 +86,21 @@ public class ComandaRepository {
             em.close();
         }
     }
+
+    public void deleteAll() {
+        EntityManager em = getEntityManager();
+        try {
+            em.getTransaction().begin();
+            List<Comanda> all = em.createQuery("SELECT c FROM Comanda c", Comanda.class).getResultList();
+            for (Comanda c : all) {
+                em.remove(c);
+            }
+            em.getTransaction().commit();
+        } catch (Exception e) {
+            if (em.getTransaction().isActive()) em.getTransaction().rollback();
+            throw e;
+        } finally {
+            em.close();
+        }
+    }
 }

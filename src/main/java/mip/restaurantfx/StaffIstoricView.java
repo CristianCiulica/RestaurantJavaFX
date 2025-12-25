@@ -1,25 +1,40 @@
 package mip.restaurantfx;
 
 import javafx.collections.FXCollections;
+import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import mip.restaurantfx.service.AppContext;
 
 import java.time.format.DateTimeFormatter;
 
 public class StaffIstoricView {
 
-    private final ComandaRepository comandaRepo = new ComandaRepository();
+    private final ComandaRepository comandaRepo;
+
+    public StaffIstoricView(ComandaRepository comandaRepo) {
+        this.comandaRepo = comandaRepo;
+    }
 
     public void start(Stage stage, User ospatar) {
-        BorderPane root = new BorderPane();
-        root.setPadding(new Insets(16));
+        BorderPane content = new BorderPane();
+        content.setPadding(new Insets(16));
+
+        LoadingOverlay overlay = new LoadingOverlay(content);
+
+        Button btnExit = new Button("X");
+        btnExit.getStyleClass().add("exit");
+        btnExit.setOnAction(e -> ExitUtil.confirmAndExit(stage));
 
         Button btnBack = new Button("Înapoi");
         btnBack.getStyleClass().add("outline");
-        btnBack.setOnAction(e -> new StaffMeseView().start(stage, ospatar));
+        btnBack.setOnAction(e -> {
+            WindowState.rememberFullScreen(stage.isFullScreen());
+            new StaffMeseView(AppContext.services()).start(stage, ospatar);
+        });
 
         Label title = new Label("Istoricul meu");
         title.getStyleClass().add("title");
@@ -28,10 +43,10 @@ public class StaffIstoricView {
         Button btnRefresh = new Button("Refresh");
         btnRefresh.getStyleClass().add("outline");
 
-        HBox top = new HBox(12, btnBack, title, new Region(), btnRefresh);
+        HBox top = new HBox(12, btnBack, title, new Region(), btnRefresh, btnExit);
         HBox.setHgrow(top.getChildren().get(2), Priority.ALWAYS);
         top.getStyleClass().add("topbar");
-        root.setTop(top);
+        content.setTop(top);
 
         TableView<Comanda> tabel = new TableView<>();
         TableColumn<Comanda, String> colData = new TableColumn<>("Data");
@@ -60,46 +75,63 @@ public class StaffIstoricView {
         tabelCard.getStyleClass().add("card");
 
         HBox center = new HBox(12, tabelCard, detaliiCard);
-        root.setCenter(center);
+        content.setCenter(center);
 
         Label empty = new Label("Nu există comenzi încă. Încasează o comandă și revino aici.");
         empty.getStyleClass().add("subtitle");
 
-        var comenzi = comandaRepo.getIstoricOspatar(ospatar.getId());
-        tabel.setItems(FXCollections.observableArrayList(comenzi));
-        if (comenzi.isEmpty()) {
-            listDetalii.getItems().setAll(empty.getText());
-        }
+        Runnable loadAsync = () -> {
+            Task<java.util.List<Comanda>> task = new Task<>() {
+                @Override
+                protected java.util.List<Comanda> call() {
+                    return comandaRepo.getIstoricOspatar(ospatar.getId());
+                }
+            };
 
-        tabel.getSelectionModel().selectedItemProperty().addListener((obs, oldV, newV) -> {
-            listDetalii.getItems().clear();
-            if (newV == null) return;
+            overlay.show("Loading...");
+            btnRefresh.setDisable(true);
+            tabel.setDisable(true);
+            listDetalii.setDisable(true);
 
-            for (ComandaItem it : newV.getItems()) {
-                listDetalii.getItems().add(String.format("%dx %s  |  %.2f", it.getCantitate(), it.getProdus().getNume(), it.getSubtotal()));
-            }
-            for (DetaliuComanda d : newV.getDiscountLines()) {
-                listDetalii.getItems().add(String.format("%s  |  %.2f", d.getDescriere(), d.getValoare()));
-            }
-            listDetalii.getItems().add("--------------------");
-            listDetalii.getItems().add(String.format("TOTAL: %.2f", newV.getTotal()));
-        });
+            task.setOnSucceeded(ev -> {
+                var comenzi = task.getValue();
+                tabel.setItems(FXCollections.observableArrayList(comenzi));
+                listDetalii.getItems().clear();
+                if (comenzi == null || comenzi.isEmpty()) {
+                    listDetalii.getItems().setAll(empty.getText());
+                }
+                btnRefresh.setDisable(false);
+                tabel.setDisable(false);
+                listDetalii.setDisable(false);
+                overlay.hide();
+            });
 
-        btnRefresh.setOnAction(e -> {
-            var refreshed = comandaRepo.getIstoricOspatar(ospatar.getId());
-            tabel.setItems(FXCollections.observableArrayList(refreshed));
-            listDetalii.getItems().clear();
-            if (refreshed.isEmpty()) {
-                listDetalii.getItems().setAll(empty.getText());
-            }
-        });
+            task.setOnFailed(ev -> {
+                btnRefresh.setDisable(false);
+                tabel.setDisable(false);
+                listDetalii.setDisable(false);
+                overlay.hide();
+                Throwable ex = task.getException();
+                new Alert(Alert.AlertType.ERROR, "Nu s-a putut încărca istoricul: " + (ex == null ? "" : ex.getMessage())).show();
+            });
 
-        Scene scene = new Scene(root, 980, 620);
+            FxExecutors.db().submit(task);
+        };
+
+        loadAsync.run();
+
+        btnRefresh.setOnAction(e -> loadAsync.run());
+
+        Scene scene = new Scene(overlay.getRoot(), 980, 620);
         var css = StaffIstoricView.class.getResource("/mip/restaurantfx/theme.css");
         if (css != null) {
             scene.getStylesheets().add(css.toExternalForm());
         }
         stage.setScene(scene);
+
+        StageUtil.keepMaximized(stage);
+
         stage.setTitle("La Andrei • Istoric");
+        StageUtil.keepMaximized(stage);
     }
 }
