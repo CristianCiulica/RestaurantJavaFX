@@ -43,6 +43,10 @@ public class ClientView {
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(16));
 
+        Button btnExit = new Button("X");
+        btnExit.getStyleClass().add("exit");
+        btnExit.setOnAction(e -> ExitUtil.confirmAndExit(stage));
+
         // --- Top (filtre) ---
         HBox topPanel = new HBox(10);
         topPanel.getStyleClass().add("topbar");
@@ -51,6 +55,7 @@ public class ClientView {
         btnLogout.getStyleClass().add("outline");
         btnLogout.setOnAction(e -> {
             try {
+                WindowState.rememberFullScreen(stage.isFullScreen());
                 new RestaurantGUI().start(stage);
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -66,7 +71,10 @@ public class ClientView {
         Button btnFiltreaza = new Button("Aplică filtre");
         btnFiltreaza.getStyleClass().add("primary");
 
-        topPanel.getChildren().addAll(btnLogout, txtSearch, chkVegetarian, txtPretMin, txtPretMax, btnFiltreaza);
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        topPanel.getChildren().addAll(btnLogout, txtSearch, chkVegetarian, txtPretMin, txtPretMax, btnFiltreaza, spacer, btnExit);
         root.setTop(topPanel);
 
         // --- Center/Left: listă produse + detalii text sub listă ---
@@ -134,7 +142,13 @@ public class ClientView {
         Scene scene = new Scene(root, 1180, 680);
         scene.getStylesheets().add(ClientView.class.getResource("/mip/restaurantfx/theme.css").toExternalForm());
         stage.setScene(scene);
+
+        StageUtil.keepMaximized(stage);
+
         stage.setTitle("La Andrei • Meniu (Guest)");
+
+        // siguranta extra
+        StageUtil.keepMaximized(stage);
     }
 
     private void afiseazaDetalii(Produs p) {

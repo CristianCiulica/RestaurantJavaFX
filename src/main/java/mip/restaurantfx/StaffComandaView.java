@@ -13,6 +13,7 @@ import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import mip.restaurantfx.service.ClientMenuService;
 import mip.restaurantfx.service.OrderService;
+import mip.restaurantfx.StageUtil;
 
 public class StaffComandaView {
 
@@ -45,11 +46,16 @@ public class StaffComandaView {
         lblTitlu.getStyleClass().add("title");
         lblTitlu.setStyle("-fx-font-size: 18px;");
 
+        Button btnExit = new Button("X");
+        btnExit.getStyleClass().add("exit");
+        btnExit.setOnAction(e -> ExitUtil.confirmAndExit(stage));
+
         Button btnBack = new Button("Înapoi la mese");
         btnBack.getStyleClass().add("outline");
         btnBack.setOnAction(e -> new StaffMeseView(mip.restaurantfx.service.AppContext.services()).start(stage, ospatar));
 
-        HBox top = new HBox(12, btnBack, lblTitlu);
+        HBox top = new HBox(12, btnBack, lblTitlu, new Region(), btnExit);
+        HBox.setHgrow(top.getChildren().get(2), Priority.ALWAYS);
         top.getStyleClass().add("topbar");
         root.setTop(top);
 
@@ -196,7 +202,13 @@ public class StaffComandaView {
         Scene scene = new Scene(root, 1040, 640);
         scene.getStylesheets().add(StaffComandaView.class.getResource("/mip/restaurantfx/theme.css").toExternalForm());
         stage.setScene(scene);
+
+        StageUtil.keepMaximized(stage);
+
         stage.setTitle("La Andrei • Comandă");
+
+        // siguranta extra
+        StageUtil.keepMaximized(stage);
     }
 
     private void refreshTabel() {

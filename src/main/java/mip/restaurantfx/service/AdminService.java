@@ -12,11 +12,13 @@ public class AdminService {
     private final UserRepository userRepo;
     private final ProdusRepository produsRepo;
     private final ComandaRepository comandaRepo;
+    private final OfferConfigService offerConfig;
 
-    public AdminService(UserRepository userRepo, ProdusRepository produsRepo, ComandaRepository comandaRepo) {
+    public AdminService(UserRepository userRepo, ProdusRepository produsRepo, ComandaRepository comandaRepo, OfferConfigService offerConfig) {
         this.userRepo = userRepo;
         this.produsRepo = produsRepo;
         this.comandaRepo = comandaRepo;
+        this.offerConfig = offerConfig;
     }
 
     public List<User> getAllStaff() {
@@ -46,5 +48,17 @@ public class AdminService {
     public void deleteAllHistory() {
         comandaRepo.deleteAll();
     }
-}
 
+    public OfferConfigService offers() {
+        return offerConfig;
+    }
+
+    public boolean isOfferEnabled(OfferConfigService.OfferKey key) {
+        return offerConfig != null && offerConfig.isEnabled(key);
+    }
+
+    public void setOfferEnabled(OfferConfigService.OfferKey key, boolean enabled) {
+        if (offerConfig == null) return;
+        offerConfig.setEnabled(key, enabled);
+    }
+}

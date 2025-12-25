@@ -1,4 +1,3 @@
-
 .root {
     -fx-font-family: "Segoe UI";
     -fx-background-color: #f6f7fb;
@@ -198,5 +197,23 @@
     -fx-padding: 14;
 }
 
+/* Small exit button (top-right) */
+.button.exit {
+    -fx-background-color: #d92d20;
+    -fx-text-fill: white;
+    -fx-font-weight: 900;
+    -fx-padding: 4 10;
+    -fx-min-width: 32;
+    -fx-min-height: 28;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: transparent;
+}
 
+.button.exit:hover {
+    -fx-background-color: #b42318;
+}
 
+.button.exit:pressed {
+    -fx-background-color: #912018;
+}

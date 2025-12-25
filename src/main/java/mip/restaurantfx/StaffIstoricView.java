@@ -22,9 +22,16 @@ public class StaffIstoricView {
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(16));
 
+        Button btnExit = new Button("X");
+        btnExit.getStyleClass().add("exit");
+        btnExit.setOnAction(e -> ExitUtil.confirmAndExit(stage));
+
         Button btnBack = new Button("Înapoi");
         btnBack.getStyleClass().add("outline");
-        btnBack.setOnAction(e -> new StaffMeseView(AppContext.services()).start(stage, ospatar));
+        btnBack.setOnAction(e -> {
+            WindowState.rememberFullScreen(stage.isFullScreen());
+            new StaffMeseView(AppContext.services()).start(stage, ospatar);
+        });
 
         Label title = new Label("Istoricul meu");
         title.getStyleClass().add("title");
@@ -33,7 +40,7 @@ public class StaffIstoricView {
         Button btnRefresh = new Button("Refresh");
         btnRefresh.getStyleClass().add("outline");
 
-        HBox top = new HBox(12, btnBack, title, new Region(), btnRefresh);
+        HBox top = new HBox(12, btnBack, title, new Region(), btnRefresh, btnExit);
         HBox.setHgrow(top.getChildren().get(2), Priority.ALWAYS);
         top.getStyleClass().add("topbar");
         root.setTop(top);
@@ -105,6 +112,12 @@ public class StaffIstoricView {
             scene.getStylesheets().add(css.toExternalForm());
         }
         stage.setScene(scene);
+
+        StageUtil.keepMaximized(stage);
+
         stage.setTitle("La Andrei • Istoric");
+
+        // siguranta extra
+        StageUtil.keepMaximized(stage);
     }
 }

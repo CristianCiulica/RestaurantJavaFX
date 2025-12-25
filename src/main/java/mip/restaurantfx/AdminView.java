@@ -7,6 +7,7 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import mip.restaurantfx.service.AdminService;
+import mip.restaurantfx.service.OfferConfigService;
 
 public class AdminView {
 
@@ -20,10 +21,15 @@ public class AdminView {
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(16));
 
+        Button btnExit = new Button("X");
+        btnExit.getStyleClass().add("exit");
+        btnExit.setOnAction(e -> ExitUtil.confirmAndExit(stage));
+
         Button btnBack = new Button("Logout");
         btnBack.getStyleClass().add("outline");
         btnBack.setOnAction(e -> {
             try {
+                WindowState.rememberFullScreen(stage.isFullScreen());
                 new RestaurantGUI().start(stage);
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -34,7 +40,8 @@ public class AdminView {
         title.getStyleClass().add("title");
         title.setStyle("-fx-font-size: 18px;");
 
-        HBox top = new HBox(12, btnBack, title);
+        HBox top = new HBox(12, btnBack, title, new Region(), btnExit);
+        HBox.setHgrow(top.getChildren().get(2), Priority.ALWAYS);
         top.getStyleClass().add("topbar");
         root.setTop(top);
 
@@ -54,8 +61,14 @@ public class AdminView {
         var css = AdminView.class.getResource("/mip/restaurantfx/theme.css");
         if (css != null) scene.getStylesheets().add(css.toExternalForm());
         stage.setScene(scene);
+
+        StageUtil.keepMaximized(stage);
+
         stage.setTitle("La Andrei • Manager");
         stage.show();
+
+        // dupa show, reaplicam fullscreen (pe Windows ajuta la schimbarea de scene)
+        StageUtil.keepMaximized(stage);
     }
 
     private Tab tabPersonal() {
@@ -199,16 +212,25 @@ public class AdminView {
         VBox card = new VBox(10);
         card.getStyleClass().add("card");
 
-        Label lbl = new Label("Oferte active (demo)");
-        Label hint = new Label("În cod, ofertele sunt active automat. Aici e panoul de control pentru manager (UI)." );
+        Label lbl = new Label("Oferte active");
+        Label hint = new Label("Bifează/debifează ce reguli de discount sunt aplicate la comenzile ospătarilor.");
         hint.getStyleClass().add("subtitle");
 
         CheckBox c1 = new CheckBox("Happy Hour (a 2-a băutură -50%)");
-        c1.setSelected(true);
+        c1.setSelected(adminService.isOfferEnabled(OfferConfigService.OfferKey.HAPPY_HOUR));
+
         CheckBox c2 = new CheckBox("Meal Deal (desert -25% la Pizza)");
-        c2.setSelected(true);
+        c2.setSelected(adminService.isOfferEnabled(OfferConfigService.OfferKey.MEAL_DEAL));
+
         CheckBox c3 = new CheckBox("Party Pack (1 Pizza gratis la 4)");
-        c3.setSelected(true);
+        c3.setSelected(adminService.isOfferEnabled(OfferConfigService.OfferKey.PARTY_PACK));
+
+        c1.selectedProperty().addListener((obs, oldV, newV) ->
+                adminService.setOfferEnabled(OfferConfigService.OfferKey.HAPPY_HOUR, Boolean.TRUE.equals(newV)));
+        c2.selectedProperty().addListener((obs, oldV, newV) ->
+                adminService.setOfferEnabled(OfferConfigService.OfferKey.MEAL_DEAL, Boolean.TRUE.equals(newV)));
+        c3.selectedProperty().addListener((obs, oldV, newV) ->
+                adminService.setOfferEnabled(OfferConfigService.OfferKey.PARTY_PACK, Boolean.TRUE.equals(newV)));
 
         card.getChildren().addAll(lbl, hint, new Separator(), c1, c2, c3);
         tab.setContent(card);

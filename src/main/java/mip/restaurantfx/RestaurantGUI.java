@@ -7,6 +7,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 
 import mip.restaurantfx.service.AppContext;
 
@@ -19,12 +20,28 @@ public class RestaurantGUI extends Application {
     private static final boolean USE_LOCAL_BG = false;
     private static final String LOGIN_BG_LOCAL_FILE = "D:/path/to/your/image.jpg";
 
+    private static final String KEY_CLOSE_HANDLER_INSTALLED = "__closeHandlerInstalled";
+
     // in loc sa instantiem repo-uri direct in UI, luam din composition root
     private final UserRepository userRepo = AppContext.services().users();
 
     @Override
     public void start(Stage stage) {
         DataSeeder.seed();
+
+        if (!Boolean.TRUE.equals(stage.getProperties().get(KEY_CLOSE_HANDLER_INSTALLED))) {
+            stage.setOnCloseRequest(evt -> {
+                evt.consume();
+                ExitUtil.confirmAndExit(stage);
+            });
+            stage.getProperties().put(KEY_CLOSE_HANDLER_INSTALLED, true);
+        }
+
+        // IMPORTANT: ca fullscreen-ul sa ramana fara bara de titlu pe toate ecranele,
+        // Stage-ul trebuie setat UNDECORATED inainte de primul show().
+        if (!stage.isShowing()) {
+            stage.initStyle(StageStyle.UNDECORATED);
+        }
 
         stage.setTitle("Restaurant La Andrei - Login");
         Label lblTitlu = new Label("Restaurantul La Andrei");
@@ -78,12 +95,18 @@ public class RestaurantGUI extends Application {
         StackPane root = new StackPane();
         root.getStyleClass().add("login-root");
 
+        Button btnExit = new Button("X");
+        btnExit.getStyleClass().add("exit");
+        btnExit.setOnAction(e -> ExitUtil.confirmAndExit(stage));
+        StackPane.setAlignment(btnExit, Pos.TOP_RIGHT);
+        StackPane.setMargin(btnExit, new Insets(12));
+
         Region overlay = new Region();
         overlay.setStyle("-fx-background-color: rgba(11, 15, 26, 0.35);");
         overlay.prefWidthProperty().bind(root.widthProperty());
         overlay.prefHeightProperty().bind(root.heightProperty());
 
-        root.getChildren().addAll(overlay, card);
+        root.getChildren().addAll(overlay, card, btnExit);
         root.setPadding(new Insets(18));
         if (USE_LOCAL_BG) {
             File f = new File(LOGIN_BG_LOCAL_FILE);
@@ -109,6 +132,7 @@ public class RestaurantGUI extends Application {
             Optional<User> userGasit = userRepo.login(u, p);
 
             if (userGasit.isPresent()) {
+                WindowState.rememberFullScreen(stage.isFullScreen());
                 deschideInterfata(stage, userGasit.get());
             } else {
                 lblMesaj.setText("Date incorecte. Verifică user/parola și încearcă din nou.");
@@ -117,6 +141,7 @@ public class RestaurantGUI extends Application {
 
         btnGuest.setOnAction(e -> {
             User guestUser = new User("guest", "", "Vizitator", User.Role.CLIENT);
+            WindowState.rememberFullScreen(stage.isFullScreen());
             deschideInterfata(stage, guestUser);
         });
 
@@ -126,10 +151,18 @@ public class RestaurantGUI extends Application {
             scene.getStylesheets().add(css.toExternalForm());
         }
         stage.setScene(scene);
+
+        StageUtil.keepMaximized(stage);
+
         stage.show();
+
+        StageUtil.keepMaximized(stage);
     }
 
     private void deschideInterfata(Stage stage, User user) {
+        // Retinem preferinta curenta de fullscreen.
+        WindowState.rememberFullScreen(stage.isFullScreen());
+
         if (user.getRol() == User.Role.CLIENT) {
             new ClientView(AppContext.services().clientMenu(), AppContext.services().productImages()).start(stage, user);
         }
@@ -139,6 +172,8 @@ public class RestaurantGUI extends Application {
         else if (user.getRol() == User.Role.ADMIN) {
             new AdminView(AppContext.services().admin()).start(stage, user);
         }
+
+        StageUtil.keepMaximized(stage);
     }
     @Override
     public void stop() {

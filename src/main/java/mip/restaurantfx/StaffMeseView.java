@@ -29,6 +29,10 @@ public class StaffMeseView {
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(16));
 
+        Button btnExit = new Button("X");
+        btnExit.getStyleClass().add("exit");
+        btnExit.setOnAction(e -> ExitUtil.confirmAndExit(stage));
+
         HBox header = new HBox(12);
         header.getStyleClass().add("topbar");
 
@@ -48,6 +52,7 @@ public class StaffMeseView {
         btnLogout.getStyleClass().addAll("outline", "pos");
         btnLogout.setOnAction(e -> {
             try {
+                WindowState.rememberFullScreen(stage.isFullScreen());
                 new RestaurantGUI().start(stage);
             } catch (Exception ex) {
                 new Alert(Alert.AlertType.ERROR, "Eroare la logout: " + ex.getMessage()).show();
@@ -56,7 +61,7 @@ public class StaffMeseView {
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
-        header.getChildren().addAll(titles, spacer, btnIstoric, btnLogout);
+        header.getChildren().addAll(titles, spacer, btnIstoric, btnLogout, btnExit);
 
         Region accent = new Region();
         accent.getStyleClass().add("accent-bar");
@@ -89,7 +94,13 @@ public class StaffMeseView {
         var css = StaffMeseView.class.getResource("/mip/restaurantfx/theme.css");
         if (css != null) scene.getStylesheets().add(css.toExternalForm());
         stage.setScene(scene);
+
+        StageUtil.keepMaximized(stage);
+
         stage.setTitle("La Andrei • Staff");
+
+        // siguranta extra: dupa ce se afiseaza, reaplicam fullscreen
+        StageUtil.keepMaximized(stage);
     }
 
     private void deschideComanda(Stage stage, Masa masa) {

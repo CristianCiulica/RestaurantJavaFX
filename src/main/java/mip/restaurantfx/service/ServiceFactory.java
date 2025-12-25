@@ -15,8 +15,10 @@ public class ServiceFactory {
 
     private final ClientMenuService clientMenuService = new ClientMenuService(produsRepository);
     private final ProductImageService productImageService = new ProductImageService();
-    private final OrderService orderService = new OrderService(comandaRepository, masaRepository);
-    private final AdminService adminService = new AdminService(userRepository, produsRepository, comandaRepository);
+    private final OfferConfigService offerConfigService = new OfferConfigService();
+
+    private final OrderService orderService = new OrderService(comandaRepository, masaRepository, offerConfigService);
+    private final AdminService adminService = new AdminService(userRepository, produsRepository, comandaRepository, offerConfigService);
 
     public UserRepository users() {
         return userRepository;
@@ -40,6 +42,10 @@ public class ServiceFactory {
 
     public ProductImageService productImages() {
         return productImageService;
+    }
+
+    public OfferConfigService offers() {
+        return offerConfigService;
     }
 
     public OrderService orders() {

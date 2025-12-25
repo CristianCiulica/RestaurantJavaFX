@@ -10,10 +10,12 @@ public class OrderService {
 
     private final ComandaRepository comandaRepo;
     private final MasaRepository masaRepo;
+    private final OfferConfigService offerConfig;
 
-    public OrderService(ComandaRepository comandaRepo, MasaRepository masaRepo) {
+    public OrderService(ComandaRepository comandaRepo, MasaRepository masaRepo, OfferConfigService offerConfig) {
         this.comandaRepo = comandaRepo;
         this.masaRepo = masaRepo;
+        this.offerConfig = offerConfig;
     }
 
     public Comanda loadOrCreateActiveOrder(Masa masa) {
@@ -60,10 +62,16 @@ public class OrderService {
         comanda.clearDiscountLines();
         comanda.calculeazaTotal();
 
-        // Oferte hardcodate (manager UI va controla activarea ulterior)
-        new HappyHourDiscount().aplicaDiscount(comanda);
-        new MealDealDiscount().aplicaDiscount(comanda);
-        new PartyPackDiscount().aplicaDiscount(comanda);
+        // Oferte hardcodate, dar activarea e controlata din Admin.
+        if (offerConfig == null || offerConfig.isEnabled(OfferConfigService.OfferKey.HAPPY_HOUR)) {
+            new HappyHourDiscount().aplicaDiscount(comanda);
+        }
+        if (offerConfig == null || offerConfig.isEnabled(OfferConfigService.OfferKey.MEAL_DEAL)) {
+            new MealDealDiscount().aplicaDiscount(comanda);
+        }
+        if (offerConfig == null || offerConfig.isEnabled(OfferConfigService.OfferKey.PARTY_PACK)) {
+            new PartyPackDiscount().aplicaDiscount(comanda);
+        }
 
         comanda.calculeazaTotal();
     }
@@ -87,4 +95,3 @@ public class OrderService {
         comandaRepo.save(comanda);
     }
 }
-
