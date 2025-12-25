@@ -9,10 +9,7 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-/**
- * Use-case/service pentru modulul Guest (meniu + filtrare/cautare).
- * IMPORTANT: aici sta logica de filtrare (Streams API), nu in UI.
- */
+
 public class ClientMenuService {
 
     private final ProdusRepository produsRepository;
@@ -22,11 +19,11 @@ public class ClientMenuService {
     }
 
     public List<Produs> getAllProducts() {
-        return produsRepository.getAll();
+        return produsRepository.getAllActive();
     }
 
     public List<Produs> filterProducts(ProductFilterCriteria criteria) {
-        List<Produs> toate = produsRepository.getAll();
+        List<Produs> toate = produsRepository.getAllActive();
 
         String cautare = Optional.ofNullable(criteria.searchText()).orElse("")
                 .trim()
@@ -62,4 +59,3 @@ public class ClientMenuService {
                 .collect(Collectors.toList());
     }
 }
-

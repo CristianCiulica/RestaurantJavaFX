@@ -12,7 +12,6 @@ public class Mancare extends Produs {
     public Mancare() {}
 
     public Mancare(String nume, double pret, int gramaj, boolean vegetarian) {
-        // categoria poate fi setata ulterior; pentru moment nu o fortam
         super(nume, pret);
         this.gramaj = gramaj;
         this.vegetarian = vegetarian;

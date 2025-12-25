@@ -1,6 +1,7 @@
 package mip.restaurantfx;
 
 import javafx.collections.FXCollections;
+import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -18,8 +19,10 @@ public class AdminView {
     }
 
     public void start(Stage stage, User admin) {
-        BorderPane root = new BorderPane();
-        root.setPadding(new Insets(16));
+        BorderPane content = new BorderPane();
+        content.setPadding(new Insets(16));
+
+        LoadingOverlay overlay = new LoadingOverlay(content);
 
         Button btnExit = new Button("X");
         btnExit.getStyleClass().add("exit");
@@ -43,21 +46,21 @@ public class AdminView {
         HBox top = new HBox(12, btnBack, title, new Region(), btnExit);
         HBox.setHgrow(top.getChildren().get(2), Priority.ALWAYS);
         top.getStyleClass().add("topbar");
-        root.setTop(top);
+        content.setTop(top);
 
         TabPane tabs = new TabPane();
         tabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
 
         tabs.getTabs().addAll(
                 tabPersonal(),
-                tabMeniu(stage),
+                tabMeniu(stage, overlay),
                 tabOferte(),
-                tabIstoricGlobal()
+                tabIstoricGlobal(overlay)
         );
 
-        root.setCenter(tabs);
+        content.setCenter(tabs);
 
-        Scene scene = new Scene(root, 1100, 720);
+        Scene scene = new Scene(overlay.getRoot(), 1100, 720);
         var css = AdminView.class.getResource("/mip/restaurantfx/theme.css");
         if (css != null) scene.getStylesheets().add(css.toExternalForm());
         stage.setScene(scene);
@@ -67,7 +70,6 @@ public class AdminView {
         stage.setTitle("La Andrei • Manager");
         stage.show();
 
-        // dupa show, reaplicam fullscreen (pe Windows ajuta la schimbarea de scene)
         StageUtil.keepMaximized(stage);
     }
 
@@ -170,7 +172,7 @@ public class AdminView {
         return tab;
     }
 
-    private Tab tabMeniu(Stage stage) {
+    private Tab tabMeniu(Stage stage, LoadingOverlay overlay) {
         Tab tab = new Tab("Meniu");
 
         VBox card = new VBox(10);
@@ -178,29 +180,131 @@ public class AdminView {
 
         Label lbl = new Label("Meniu (produse din DB)");
         ListView<Produs> list = new ListView<>();
-        list.setItems(FXCollections.observableArrayList(adminService.getAllProducts()));
 
-        HBox actions = new HBox(8);
+        Runnable loadProducts = () -> list.setItems(FXCollections.observableArrayList(adminService.getAllProducts()));
+        loadProducts.run();
+
+        Button btnAdd = new Button("Adaugă produs");
+        btnAdd.getStyleClass().add("primary");
+
+        Button btnEdit = new Button("Modifică produs");
+        btnEdit.getStyleClass().add("outline");
+
+        Button btnDelete = new Button("Șterge produs");
+        btnDelete.getStyleClass().add("danger");
+
         Button btnRefresh = new Button("Refresh");
         btnRefresh.getStyleClass().add("outline");
-        btnRefresh.setOnAction(e -> list.setItems(FXCollections.observableArrayList(adminService.getAllProducts())));
 
         Button btnExport = new Button("Export JSON");
         btnExport.getStyleClass().add("outline");
-        btnExport.setOnAction(e -> new RestaurantFXExportImport().exportaProduse(stage, adminService.getAllProducts()));
 
         Button btnImport = new Button("Import JSON");
         btnImport.getStyleClass().add("primary");
-        btnImport.setOnAction(e -> {
-            var imported = new RestaurantFXExportImport().importaProduse(stage);
-            if (imported != null) {
-                for (Produs p : imported) adminService.saveProduct(p);
-                list.setItems(FXCollections.observableArrayList(adminService.getAllProducts()));
+
+        btnAdd.setOnAction(e -> {
+            Produs created = showProductDialog(null);
+            if (created == null) return;
+            try {
+                adminService.saveProduct(created);
+                loadProducts.run();
+                new Alert(Alert.AlertType.INFORMATION, "Produs adăugat.").show();
+            } catch (Exception ex) {
+                new Alert(Alert.AlertType.ERROR, "Nu s-a putut adăuga produsul: " + ex.getMessage()).show();
             }
         });
 
-        actions.getChildren().addAll(btnRefresh, btnExport, btnImport);
-        card.getChildren().addAll(lbl, new Separator(), actions, list);
+        btnEdit.setOnAction(e -> {
+            Produs selected = list.getSelectionModel().getSelectedItem();
+            if (selected == null) {
+                new Alert(Alert.AlertType.WARNING, "Selectează un produs ca să-l modifici.").show();
+                return;
+            }
+            Produs updated = showProductDialog(selected);
+            if (updated == null) return;
+            try {
+                adminService.saveProduct(updated);
+                loadProducts.run();
+                new Alert(Alert.AlertType.INFORMATION, "Produs modificat.").show();
+            } catch (Exception ex) {
+                new Alert(Alert.AlertType.ERROR, "Nu s-a putut modifica produsul: " + ex.getMessage()).show();
+            }
+        });
+
+        btnDelete.setOnAction(e -> {
+            Produs selected = list.getSelectionModel().getSelectedItem();
+            if (selected == null) {
+                new Alert(Alert.AlertType.WARNING, "Selectează un produs ca să-l ștergi.").show();
+                return;
+            }
+
+            Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
+                    "Scoți produsul din meniu: " + selected.getNume() + " ?\n\nIstoricul comenzilor rămâne intact.",
+                    ButtonType.YES, ButtonType.NO);
+            confirm.setHeaderText("Confirmare");
+            var res = confirm.showAndWait();
+            if (res.isEmpty() || res.get() != ButtonType.YES) return;
+
+            try {
+                boolean ok = adminService.deleteProductById(selected.getId());
+                loadProducts.run();
+                if (ok) {
+                    new Alert(Alert.AlertType.INFORMATION, "Produs scos din meniu.").show();
+                } else {
+                    new Alert(Alert.AlertType.WARNING, "Produsul nu mai există.").show();
+                }
+            } catch (Exception ex) {
+                new Alert(Alert.AlertType.ERROR, "Nu s-a putut scoate produsul din meniu: " + ex.getMessage()).show();
+            }
+        });
+
+        btnRefresh.setOnAction(e -> loadProducts.run());
+        btnExport.setOnAction(e -> new RestaurantFXExportImport().exportaProduse(stage, adminService.getAllProducts()));
+        btnImport.setOnAction(e -> {
+            var fileChooserRes = new RestaurantFXExportImport().importaProduse(stage);
+            if (fileChooserRes == null) return;
+
+            Task<Void> task = new Task<>() {
+                @Override
+                protected Void call() {
+                    for (Produs p : fileChooserRes) {
+                        adminService.saveProduct(p);
+                    }
+                    return null;
+                }
+            };
+
+            overlay.show("Importing...");
+            btnImport.setDisable(true);
+            btnExport.setDisable(true);
+            btnRefresh.setDisable(true);
+
+            task.setOnSucceeded(ev -> {
+                btnImport.setDisable(false);
+                btnExport.setDisable(false);
+                btnRefresh.setDisable(false);
+                overlay.hide();
+                loadProducts.run();
+                new Alert(Alert.AlertType.INFORMATION, "Import finalizat.").show();
+            });
+
+            task.setOnFailed(ev -> {
+                btnImport.setDisable(false);
+                btnExport.setDisable(false);
+                btnRefresh.setDisable(false);
+                overlay.hide();
+                Throwable ex = task.getException();
+                new Alert(Alert.AlertType.ERROR, "Import eșuat: " + (ex == null ? "" : ex.getMessage())).show();
+            });
+
+            FxExecutors.db().submit(task);
+        });
+
+        HBox crud = new HBox(10, btnAdd, btnEdit, btnDelete);
+        HBox aux = new HBox(10, btnRefresh, btnExport, btnImport);
+        VBox buttons = new VBox(8, crud, aux);
+
+        card.getChildren().addAll(lbl, new Separator(), buttons, list);
 
         tab.setContent(card);
         return tab;
@@ -237,7 +341,7 @@ public class AdminView {
         return tab;
     }
 
-    private Tab tabIstoricGlobal() {
+    private Tab tabIstoricGlobal(LoadingOverlay overlay) {
         Tab tab = new Tab("Istoric");
 
         VBox card = new VBox(10);
@@ -280,13 +384,41 @@ public class AdminView {
         card.getChildren().addAll(lbl, new Separator(), center);
         tab.setContent(card);
 
-        Runnable load = () -> tabel.setItems(FXCollections.observableArrayList(adminService.getGlobalHistory()));
-        load.run();
+        Runnable loadAsync = () -> {
+            Task<java.util.List<Comanda>> task = new Task<>() {
+                @Override
+                protected java.util.List<Comanda> call() {
+                    return adminService.getGlobalHistory();
+                }
+            };
 
-        btnRefresh.setOnAction(e -> {
-            detalii.getItems().clear();
-            load.run();
-        });
+            overlay.show("Loading...");
+            btnRefresh.setDisable(true);
+            btnStergeIstoric.setDisable(true);
+            tabel.setDisable(true);
+
+            task.setOnSucceeded(ev -> {
+                tabel.setItems(FXCollections.observableArrayList(task.getValue()));
+                btnRefresh.setDisable(false);
+                btnStergeIstoric.setDisable(false);
+                tabel.setDisable(false);
+                overlay.hide();
+            });
+
+            task.setOnFailed(ev -> {
+                btnRefresh.setDisable(false);
+                btnStergeIstoric.setDisable(false);
+                tabel.setDisable(false);
+                overlay.hide();
+                Throwable ex = task.getException();
+                new Alert(Alert.AlertType.ERROR, "Nu s-a putut încărca istoricul: " + (ex == null ? "" : ex.getMessage())).show();
+            });
+
+            FxExecutors.db().submit(task);
+        };
+
+        loadAsync.run();
+        btnRefresh.setOnAction(e -> loadAsync.run());
 
         btnStergeIstoric.setOnAction(e -> {
             Alert confirm = new Alert(Alert.AlertType.CONFIRMATION,
@@ -296,15 +428,39 @@ public class AdminView {
             var res = confirm.showAndWait();
             if (res.isEmpty() || res.get() != ButtonType.YES) return;
 
-            try {
-                adminService.deleteAllHistory();
-                detalii.getItems().clear();
-                load.run();
+            Task<Void> task = new Task<>() {
+                @Override
+                protected Void call() {
+                    adminService.deleteAllHistory();
+                    return null;
+                }
+            };
+
+            overlay.show("Ștergere istoric...");
+            tabel.setDisable(true);
+            btnRefresh.setDisable(true);
+            btnStergeIstoric.setDisable(true);
+
+            task.setOnSucceeded(ev -> {
+                tabel.setDisable(false);
+                btnRefresh.setDisable(false);
+                btnStergeIstoric.setDisable(false);
+                overlay.hide();
+                loadAsync.run();
                 new Alert(Alert.AlertType.INFORMATION, "Istoricul a fost șters.").show();
-            } catch (Exception ex) {
+            });
+
+            task.setOnFailed(ev -> {
+                tabel.setDisable(false);
+                btnRefresh.setDisable(false);
+                btnStergeIstoric.setDisable(false);
+                overlay.hide();
+                Throwable ex = task.getException();
                 new Alert(Alert.AlertType.ERROR, "Nu s-a putut șterge istoricul.").show();
                 ex.printStackTrace();
-            }
+            });
+
+            FxExecutors.db().submit(task);
         });
 
         tabel.getSelectionModel().selectedItemProperty().addListener((obs, o, n) -> {
@@ -324,5 +480,108 @@ public class AdminView {
         });
 
         return tab;
+    }
+
+    private Produs showProductDialog(Produs existing) {
+        Dialog<ButtonType> dlg = new Dialog<>();
+        dlg.setTitle(existing == null ? "Adaugă produs" : "Modifică produs");
+
+        ComboBox<String> cmbTip = new ComboBox<>();
+        cmbTip.setItems(FXCollections.observableArrayList("Mancare", "Bautura"));
+
+        TextField txtNume = new TextField();
+        TextField txtPret = new TextField();
+        TextField txtCant = new TextField();
+        CheckBox chkFlag = new CheckBox();
+
+        txtNume.setPromptText("nume");
+        txtPret.setPromptText("pret");
+        txtCant.setPromptText("gramaj (mancare) / volum (bautura)");
+
+        Runnable syncFlagLabel = () -> {
+            String tip = cmbTip.getValue();
+            chkFlag.setText("Bautura".equalsIgnoreCase(tip) ? "Alcoolică" : "Vegetarian");
+        };
+
+        if (existing instanceof Bautura) {
+            cmbTip.getSelectionModel().select("Bautura");
+        } else {
+            cmbTip.getSelectionModel().select("Mancare");
+        }
+
+        if (existing != null) {
+            txtNume.setText(existing.getNume());
+            txtPret.setText(String.valueOf(existing.getPret()));
+            if (existing instanceof Mancare m) {
+                txtCant.setText(String.valueOf(m.getGramaj()));
+                chkFlag.setSelected(m.isVegetarian());
+            } else if (existing instanceof Bautura b) {
+                txtCant.setText(String.valueOf(b.getVolum()));
+                chkFlag.setSelected(b.isAlcoolica());
+            }
+        } else {
+            cmbTip.getSelectionModel().selectFirst();
+        }
+
+        syncFlagLabel.run();
+        cmbTip.valueProperty().addListener((obs, o, n) -> syncFlagLabel.run());
+
+        GridPane grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(8);
+        grid.setPadding(new Insets(10));
+
+        int r = 0;
+        grid.addRow(r++, new Label("Tip"), cmbTip);
+        grid.addRow(r++, new Label("Nume"), txtNume);
+        grid.addRow(r++, new Label("Preț"), txtPret);
+        grid.addRow(r++, new Label("Gramaj/Volum"), txtCant);
+        grid.addRow(r, new Label(""), chkFlag);
+
+        dlg.getDialogPane().setContent(grid);
+        dlg.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+
+        var res = dlg.showAndWait();
+        if (res.isEmpty() || res.get() != ButtonType.OK) return null;
+
+        return buildProductFromForm(
+                existing == null ? null : existing.getId(),
+                cmbTip.getValue(),
+                txtNume.getText(),
+                txtPret.getText(),
+                txtCant.getText(),
+                chkFlag.isSelected()
+        );
+    }
+
+    private Produs buildProductFromForm(Long idOrNull, String tip, String numeRaw, String pretRaw, String cantRaw, boolean flag) {
+        String nume = numeRaw == null ? "" : numeRaw.trim();
+        if (nume.isEmpty()) throw new IllegalArgumentException("Numele e gol");
+
+        double pret;
+        try {
+            pret = Double.parseDouble((pretRaw == null ? "" : pretRaw.trim()).replace(',', '.'));
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Preț invalid");
+        }
+        if (pret < 0) throw new IllegalArgumentException("Preț invalid");
+
+        int cant;
+        try {
+            cant = Integer.parseInt((cantRaw == null ? "" : cantRaw.trim()));
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Gramaj/volum invalid");
+        }
+        if (cant <= 0) throw new IllegalArgumentException("Gramaj/volum invalid");
+
+        Produs p;
+        if ("Bautura".equalsIgnoreCase(tip)) {
+            p = new Bautura(nume, pret, cant, flag);
+        } else {
+            p = new Mancare(nume, pret, cant, flag);
+        }
+
+        if (idOrNull != null) p.setId(idOrNull);
+        return p;
     }
 }

@@ -22,13 +22,12 @@ public class ClientView {
 
     private final ListView<Produs> listaProduse = new ListView<>();
 
-    // Detalii
+
     private final Label lblNume = new Label();
     private final Label lblPret = new Label();
     private final Label lblDetaliiExtra = new Label();
     private final ImageView imgProdus = new ImageView();
 
-    // Filtre
     private final TextField txtSearch = new TextField();
     private final CheckBox chkVegetarian = new CheckBox("Doar Vegetarian");
     private final TextField txtPretMin = new TextField();
@@ -46,8 +45,6 @@ public class ClientView {
         Button btnExit = new Button("X");
         btnExit.getStyleClass().add("exit");
         btnExit.setOnAction(e -> ExitUtil.confirmAndExit(stage));
-
-        // --- Top (filtre) ---
         HBox topPanel = new HBox(10);
         topPanel.getStyleClass().add("topbar");
 
@@ -77,11 +74,9 @@ public class ClientView {
         topPanel.getChildren().addAll(btnLogout, txtSearch, chkVegetarian, txtPretMin, txtPretMax, btnFiltreaza, spacer, btnExit);
         root.setTop(topPanel);
 
-        // --- Center/Left: listă produse + detalii text sub listă ---
         listaProduse.getSelectionModel().selectedItemProperty().addListener((obs, oldVal, newVal) -> afiseazaDetalii(newVal));
         refreshLista(menuService.getAllProducts());
 
-        // Card detalii text (sub listă)
         VBox detaliiText = new VBox(8);
         detaliiText.getStyleClass().add("card");
 
@@ -108,8 +103,6 @@ public class ClientView {
 
         root.setCenter(left);
         BorderPane.setMargin(left, new Insets(12, 12, 12, 0));
-
-        // --- Right: doar imaginea ---
         VBox imaginePanel = new VBox(10);
         imaginePanel.getStyleClass().add("card");
         imaginePanel.setPrefWidth(380);
@@ -132,11 +125,8 @@ public class ClientView {
         VBox.setVgrow(imageHolder, Priority.ALWAYS);
 
         root.setRight(imaginePanel);
-
-        // --- Logica filtrare ---
         btnFiltreaza.setOnAction(e -> aplicaFiltre());
 
-        // inițial curățăm detaliile + imagine
         afiseazaDetalii(null);
 
         Scene scene = new Scene(root, 1180, 680);
@@ -147,7 +137,6 @@ public class ClientView {
 
         stage.setTitle("La Andrei • Meniu (Guest)");
 
-        // siguranta extra
         StageUtil.keepMaximized(stage);
     }
 
@@ -182,8 +171,6 @@ public class ClientView {
         ));
 
         refreshLista(filtrate);
-
-        // dacă produsul selectat nu mai există în listă, curățăm detaliile
         if (!filtrate.contains(listaProduse.getSelectionModel().getSelectedItem())) {
             listaProduse.getSelectionModel().clearSelection();
             afiseazaDetalii(null);

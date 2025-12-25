@@ -7,10 +7,6 @@ import java.text.Normalizer;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
-/**
- * Responsabil doar de mapping nume produs -> resource image.
- * Nu tine de UI layout, doar de infrastructura resurselor.
- */
 public class ProductImageService {
 
     private static final String IMAGES_DIR = "/mip/restaurantfx/images/";
@@ -29,7 +25,6 @@ public class ProductImageService {
             }
         }
 
-        // No placeholder requested.
         return null;
     }
 

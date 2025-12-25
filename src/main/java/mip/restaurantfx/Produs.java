@@ -15,6 +15,10 @@ public abstract class Produs {
     private double pret;
     private String categorie;
 
+    @Column(nullable = false)
+    @org.hibernate.annotations.ColumnDefault("true")
+    private boolean activ = true;
+
     public Produs() {}
 
     public Produs(String nume, double pret) {
@@ -42,6 +46,14 @@ public abstract class Produs {
     public String getCategorie() { return categorie; }
 
     public void setCategorie(String categorie) { this.categorie = categorie; }
+
+    public boolean isActiv() {
+        return activ;
+    }
+
+    public void setActiv(boolean activ) {
+        this.activ = activ;
+    }
 
     public abstract String getDetalii();
 

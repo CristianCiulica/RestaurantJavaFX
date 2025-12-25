@@ -10,6 +10,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
 import mip.restaurantfx.service.AppContext;
+import mip.restaurantfx.service.AppInitializer;
 
 import java.io.File;
 import java.util.Optional;
@@ -19,15 +20,12 @@ public class RestaurantGUI extends Application {
     private static final String LOGIN_BG_RESOURCE = "/login-bg.jpg";
     private static final boolean USE_LOCAL_BG = false;
     private static final String LOGIN_BG_LOCAL_FILE = "D:/path/to/your/image.jpg";
-
     private static final String KEY_CLOSE_HANDLER_INSTALLED = "__closeHandlerInstalled";
-
-    // in loc sa instantiem repo-uri direct in UI, luam din composition root
     private final UserRepository userRepo = AppContext.services().users();
 
     @Override
     public void start(Stage stage) {
-        DataSeeder.seed();
+        AppInitializer.init();
 
         if (!Boolean.TRUE.equals(stage.getProperties().get(KEY_CLOSE_HANDLER_INSTALLED))) {
             stage.setOnCloseRequest(evt -> {
@@ -36,9 +34,6 @@ public class RestaurantGUI extends Application {
             });
             stage.getProperties().put(KEY_CLOSE_HANDLER_INSTALLED, true);
         }
-
-        // IMPORTANT: ca fullscreen-ul sa ramana fara bara de titlu pe toate ecranele,
-        // Stage-ul trebuie setat UNDECORATED inainte de primul show().
         if (!stage.isShowing()) {
             stage.initStyle(StageStyle.UNDECORATED);
         }
@@ -160,7 +155,6 @@ public class RestaurantGUI extends Application {
     }
 
     private void deschideInterfata(Stage stage, User user) {
-        // Retinem preferinta curenta de fullscreen.
         WindowState.rememberFullScreen(stage.isFullScreen());
 
         if (user.getRol() == User.Role.CLIENT) {

@@ -19,8 +19,6 @@ public class ComandaItem {
     private Produs produs;
 
     private int cantitate;
-
-    // Snapshot de preț (foarte important pentru istoric)
     @Column(name = "pret_unitar")
     private double pretUnitar;
 
@@ -30,7 +28,6 @@ public class ComandaItem {
         this.comanda = comanda;
         this.produs = produs;
         this.cantitate = cantitate;
-        // Luăm prețul curent al produsului și îl "înghețăm" pe bon
         this.pretUnitar = produs.getPret();
     }
 
@@ -38,7 +35,6 @@ public class ComandaItem {
         return this.pretUnitar * this.cantitate;
     }
 
-    // Getters & Setters
     public Long getId() { return id; }
     public Produs getProdus() { return produs; }
     public int getCantitate() { return cantitate; }

@@ -4,7 +4,6 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.ButtonType;
 import javafx.stage.Stage;
 
-/** Utility pentru confirmare la iesirea din aplicatie (butonul X). */
 public final class ExitUtil {
 
     private ExitUtil() {}
@@ -19,8 +18,11 @@ public final class ExitUtil {
 
         var res = alert.showAndWait();
         if (res.isPresent() && res.get() == ButtonType.YES) {
+            try {
+                FxExecutors.shutdown();
+            } catch (Exception ignored) {
+            }
             stage.close();
         }
     }
 }
-

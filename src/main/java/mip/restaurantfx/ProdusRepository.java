@@ -17,6 +17,16 @@ public class ProdusRepository {
         }
     }
 
+    public List<Produs> getAllActive() {
+        EntityManager em = getEntityManager();
+        try {
+            return em.createQuery("SELECT p FROM Produs p WHERE p.activ = true ORDER BY p.nume", Produs.class)
+                    .getResultList();
+        } finally {
+            em.close();
+        }
+    }
+
     public void salveazaProdus(Produs p) {
         EntityManager em = getEntityManager();
         try {
@@ -36,6 +46,31 @@ public class ProdusRepository {
             em.close();
         }
     }
+
+    public boolean deactivateById(Long id) {
+        if (id == null) return false;
+        EntityManager em = getEntityManager();
+        try {
+            em.getTransaction().begin();
+            Produs managed = em.find(Produs.class, id);
+            if (managed == null) {
+                em.getTransaction().rollback();
+                return false;
+            }
+            managed.setActiv(false);
+            em.merge(managed);
+            em.getTransaction().commit();
+            return true;
+        } catch (Exception ex) {
+            if (em.getTransaction().isActive()) {
+                em.getTransaction().rollback();
+            }
+            throw ex;
+        } finally {
+            em.close();
+        }
+    }
+
     public void resetDatabase() {
         EntityManager em = getEntityManager();
         try {

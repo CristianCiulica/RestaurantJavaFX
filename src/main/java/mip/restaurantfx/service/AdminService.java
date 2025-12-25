@@ -4,9 +4,6 @@ import mip.restaurantfx.*;
 
 import java.util.List;
 
-/**
- * Use-case/service pentru modulul Manager. Scoate SQL/persistenta din UI.
- */
 public class AdminService {
 
     private final UserRepository userRepo;
@@ -60,5 +57,9 @@ public class AdminService {
     public void setOfferEnabled(OfferConfigService.OfferKey key, boolean enabled) {
         if (offerConfig == null) return;
         offerConfig.setEnabled(key, enabled);
+    }
+
+    public boolean deleteProductById(Long id) {
+        return produsRepo.deactivateById(id);
     }
 }

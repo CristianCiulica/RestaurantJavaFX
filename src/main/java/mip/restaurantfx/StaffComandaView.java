@@ -206,8 +206,6 @@ public class StaffComandaView {
         StageUtil.keepMaximized(stage);
 
         stage.setTitle("La Andrei • Comandă");
-
-        // siguranta extra
         StageUtil.keepMaximized(stage);
     }
 

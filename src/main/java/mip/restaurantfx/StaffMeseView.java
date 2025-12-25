@@ -98,8 +98,6 @@ public class StaffMeseView {
         StageUtil.keepMaximized(stage);
 
         stage.setTitle("La Andrei • Staff");
-
-        // siguranta extra: dupa ce se afiseaza, reaplicam fullscreen
         StageUtil.keepMaximized(stage);
     }
 

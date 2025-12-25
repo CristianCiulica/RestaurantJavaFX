@@ -1,10 +1,5 @@
 package mip.restaurantfx;
 
-/**
- * Retine starea dorita a ferestrei intre ecrane.
- *
- * Scop: dupa Login/Logout sa nu se piarda maximizarea/fullscreen.
- */
 public final class WindowState {
 
     private WindowState() {}
@@ -20,9 +15,6 @@ public final class WindowState {
         return v != null ? v : fallback;
     }
 
-    /**
-     * Compatibilitate cu codul vechi: daca nu avem un state explicit, tratam maximized ca fullScreen.
-     */
     public static void remember(boolean maximized) {
         rememberFullScreen(maximized);
     }

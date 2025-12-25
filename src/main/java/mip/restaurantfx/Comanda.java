@@ -18,8 +18,8 @@ public class Comanda {
     private StatusComanda status;
 
     public enum StatusComanda {
-        DESCHISA,   // Masa e ocupată
-        PLATITA,    // Masa s-a eliberat
+        DESCHISA,
+        PLATITA,
         ANULATA
     }
 
@@ -31,7 +31,6 @@ public class Comanda {
     @JoinColumn(name = "ospatar_id")
     private User ospatar;
 
-    // Relatia esențială: mappedBy trebuie să fie numele câmpului din ComandaItem ("comanda")
     @OneToMany(mappedBy = "comanda", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     private List<ComandaItem> items = new ArrayList<>();
 
@@ -51,23 +50,17 @@ public class Comanda {
         this.masa = masa;
     }
 
-    // --- LOGICA DE BUSINESS ---
 
     public void adaugaProdus(Produs p, int cantitate) {
         if (p == null || cantitate <= 0) return;
-
-        // 1. Verificăm dacă produsul există deja pe bon
         for (ComandaItem item : items) {
             if (item.getProdus() != null && item.getProdus().getId() != null && item.getProdus().getId().equals(p.getId())) {
-                // Doar actualizăm cantitatea
                 item.setCantitate(item.getCantitate() + cantitate);
                 this.calculeazaTotal();
                 return;
             }
         }
 
-        // 2. Dacă nu există, creăm unul nou
-        // 'this' este referința către comanda curentă, necesară pentru JPA
         ComandaItem newItem = new ComandaItem(this, p, cantitate);
         items.add(newItem);
 
@@ -76,7 +69,7 @@ public class Comanda {
 
     public void stergeProdus(ComandaItem item) {
         items.remove(item);
-        item.setComanda(null); // Rupem legătura pentru orphanRemoval
+        item.setComanda(null);
         this.calculeazaTotal();
     }
 
@@ -105,7 +98,6 @@ public class Comanda {
         this.total = sum;
     }
 
-    // Getters & Setters
     public Long getId() { return id; }
     public LocalDateTime getDataCreare() { return dataCreare; }
     public StatusComanda getStatus() { return status; }

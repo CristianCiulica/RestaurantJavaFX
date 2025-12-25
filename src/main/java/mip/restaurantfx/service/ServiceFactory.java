@@ -2,10 +2,6 @@ package mip.restaurantfx.service;
 
 import mip.restaurantfx.*;
 
-/**
- * Composition root simplu: creeaza si partajeaza repo-urile/serviciile.
- * Fara framework DI, dar suficient ca sa nu instantiem repo-uri in View-uri.
- */
 public class ServiceFactory {
 
     private final UserRepository userRepository = new UserRepository();

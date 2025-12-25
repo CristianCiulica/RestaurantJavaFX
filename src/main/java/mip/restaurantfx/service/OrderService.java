@@ -2,10 +2,6 @@ package mip.restaurantfx.service;
 
 import mip.restaurantfx.*;
 
-/**
- * Use-case/service pentru plasarea comenzii (Staff).
- * Contine logica de comanda + aplicare oferte + persistenta, fara JavaFX.
- */
 public class OrderService {
 
     private final ComandaRepository comandaRepo;
@@ -62,7 +58,6 @@ public class OrderService {
         comanda.clearDiscountLines();
         comanda.calculeazaTotal();
 
-        // Oferte hardcodate, dar activarea e controlata din Admin.
         if (offerConfig == null || offerConfig.isEnabled(OfferConfigService.OfferKey.HAPPY_HOUR)) {
             new HappyHourDiscount().aplicaDiscount(comanda);
         }
