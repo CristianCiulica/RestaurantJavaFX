@@ -2,8 +2,6 @@
     -fx-font-family: "Segoe UI";
     -fx-background-color: #f6f7fb;
 }
-
-/* Typography */
 .label {
     -fx-text-fill: #1b1f2a;
 }
@@ -17,8 +15,6 @@
     -fx-font-weight: 800;
     -fx-text-fill: #101828;
 }
-
-/* Containers */
 .card {
     -fx-background-color: #ffffff;
     -fx-background-radius: 14;
@@ -35,7 +31,6 @@
     -fx-padding: 12 14;
 }
 
-/* Inputs */
 .text-field, .password-field {
     -fx-background-color: #ffffff;
     -fx-text-fill: #101828;
@@ -55,7 +50,6 @@
     -fx-text-fill: #101828;
 }
 
-/* Buttons */
 .button {
     -fx-background-color: #ffffff;
     -fx-text-fill: #101828;
@@ -108,15 +102,11 @@
 .separator {
     -fx-opacity: 0.25;
 }
-
-/* Accent bar (requested: red bar) */
 .accent-bar {
     -fx-background-color: #d92d20;
     -fx-min-height: 4px;
     -fx-pref-height: 4px;
 }
-
-/* Table */
 .table-view {
     -fx-background-color: #ffffff;
     -fx-background-radius: 12;
@@ -151,7 +141,6 @@
     -fx-background-color: rgba(105, 65, 198, 0.12);
 }
 
-/* ListView */
 .list-view {
     -fx-background-color: #ffffff;
     -fx-background-radius: 12;
@@ -169,7 +158,6 @@
     -fx-background-color: rgba(105, 65, 198, 0.12);
 }
 
-/* Table tiles (Masa) */
 .table-tile {
     -fx-background-radius: 16;
     -fx-border-radius: 16;
@@ -196,8 +184,6 @@
     -fx-background-color: rgba(255, 255, 255, 0.92);
     -fx-padding: 14;
 }
-
-/* Small exit button (top-right) */
 .button.exit {
     -fx-background-color: #d92d20;
     -fx-text-fill: white;
