@@ -67,17 +67,6 @@ mvn clean package
 - Alternativ, folosește scripturile din repo (dacă sunt potrivite pentru mediul tău):
   - `run-restaurantfx.bat`
 
-## JavaFX CSS: cum „se leagă” de Java (pe scurt)
 
-În JavaFX nu ai HTML. UI-ul e construit din noduri Java (ex. `Button`, `Label`, `VBox`).
-
-- CSS-ul este încărcat în `Scene`:
-  - `scene.getStylesheets().add(".../theme.css")`
-- Clasele se pun direct în cod:
-  - `node.getStyleClass().add("primary")`
-- În CSS folosești selectorul de clasă:
-  - `.primary { ... }`
-
-În plus, fiecare control JavaFX are și clase default (ex. `.button`, `.label` etc.), pe care le poți stiliza direct.
 
 
