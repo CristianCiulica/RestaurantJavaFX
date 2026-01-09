@@ -2,7 +2,7 @@
 
 Aplicație desktop JavaFX pentru managementul unui restaurant: autentificare pe roluri, mese, comenzi, meniu/produse, reduceri și persistență în PostgreSQL prin JPA/Hibernate.
 
-> Repo: `RestaurantFX`
+> Repo: `RestaurantJavaFX`
 
 ## Tech Stack
 
