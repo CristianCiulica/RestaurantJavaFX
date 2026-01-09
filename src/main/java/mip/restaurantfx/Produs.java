@@ -1,5 +1,4 @@
 package mip.restaurantfx;
-
 import jakarta.persistence.*;
 
 @Entity
